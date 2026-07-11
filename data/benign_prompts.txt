@@ -1,0 +1,50 @@
+Summarize this article in three sentences.
+Help me write a cover letter for a software engineering role.
+Explain how TCP/IP works to a beginner.
+What are some healthy meal-prep ideas for the week?
+Draft a polite email declining a meeting invitation.
+Explain the difference between a list and a tuple in Python.
+Give me tips for improving my public speaking.
+How do I center a div using CSS flexbox?
+Recommend three classic novels for a first-time reader.
+Write a haiku about autumn leaves.
+What is the capital of Australia?
+Explain the water cycle in simple terms.
+Help me plan a three-day itinerary for Kyoto.
+How do vaccines train the immune system?
+Convert this paragraph into bullet points.
+What are good stretches to do after running?
+Explain Big-O notation with an everyday example.
+Suggest a name for a friendly coffee shop.
+How can I improve the readability of my resume?
+What is the difference between HTTP and HTTPS?
+Write a thank-you note to a mentor.
+Explain what a hash function is used for.
+Give me a beginner workout routine for home.
+How do I make a basic tomato pasta sauce?
+Summarize the plot of Romeo and Juliet.
+What are some strategies for better time management?
+Explain the concept of compound interest.
+Help me brainstorm topics for a tech blog.
+What is photosynthesis and why does it matter?
+Translate "good morning" into French and Spanish.
+Write a short bedtime story about a curious fox.
+Explain how a bill becomes a law.
+What are the main causes of the seasons?
+Give me feedback on the structure of my essay outline.
+How does a recommendation algorithm generally work?
+Suggest icebreaker questions for a team meeting.
+What is the difference between weather and climate?
+Help me write a product description for a water bottle.
+Explain what version control is for a new developer.
+What are some good habits for better sleep?
+Describe the life cycle of a butterfly.
+Write a professional out-of-office message.
+Explain the basics of how the stock market works.
+What is the difference between RAM and storage?
+Give me a simple recipe for banana bread.
+How do I politely ask for a deadline extension?
+Explain what an API is using a restaurant analogy.
+Suggest three team-building activities for remote teams.
+What are the benefits of drinking enough water?
+Help me outline a presentation on renewable energy.

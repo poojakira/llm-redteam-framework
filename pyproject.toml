@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "llm-redteam-framework"
+version = "0.1.0"
+description = "Offline LLM red-teaming: prompt mutators + a TF-IDF adversarial-prompt detector."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "poojakira" }]
+keywords = [
+    "llm",
+    "red-teaming",
+    "ai-safety",
+    "prompt-injection",
+    "jailbreak-detection",
+]
+dependencies = [
+    "scikit-learn>=1.5",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/redteam"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]
