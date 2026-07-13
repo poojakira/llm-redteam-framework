@@ -33,3 +33,15 @@ When implemented, this framework is for authorized security testing of **your
 own** LLM applications. Do not use it to attack systems you do not have
 permission to test, or to generate harmful content outside a controlled,
 authorized evaluation.
+
+
+## Novelty & honesty (be skeptical)
+
+Nothing novel here yet — there is no code. When implemented, prompt-mutation
+red-teaming and an offline detector would be **standard techniques**, not
+original research; the value would be a reproducible, versioned test harness.
+
+To be credible it must be evaluated on a **labeled, held-out prompt-injection
+corpus** (e.g. public datasets plus own red-teaming) and report precision/recall
+and a false-positive rate — not a single accuracy number on a tiny fixture.
+Until then, treat any effectiveness claim as aspirational.
