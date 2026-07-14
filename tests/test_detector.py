@@ -61,7 +61,7 @@ def test_save_load_roundtrip(tmp_path) -> None:
     before = det.predict(samples)
     path = tmp_path / "detector.pkl"
     det.save(path)
-    loaded = RedTeamDetector.load(path)
+    loaded = RedTeamDetector.load(path, trusted=True)
     after = loaded.predict(samples)
     assert loaded.is_fitted
     assert np.array_equal(before, after)
@@ -71,3 +71,10 @@ def test_length_mismatch_raises() -> None:
     det = RedTeamDetector()
     with pytest.raises(ValueError):
         det.train(["a", "b"], [1])
+
+def test_load_requires_explicit_trust(tmp_path) -> None:
+    det = _train_small()
+    path = tmp_path / "detector.pkl"
+    det.save(path)
+    with pytest.raises(ValueError, match="trusted=True"):
+        RedTeamDetector.load(path)

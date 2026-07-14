@@ -97,7 +97,7 @@ class RedTeamDetector:
         return self.pipeline.predict_proba(list(texts))[:, 1]
 
     def save(self, path: str | Path) -> None:
-        """Persist the fitted detector to ``path`` via pickle."""
+        ## Persist the fitted detector to a trusted local pickle artifact.
         self._check_fitted()
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -105,8 +105,13 @@ class RedTeamDetector:
             pickle.dump({"config": self.config, "pipeline": self.pipeline}, fh)
 
     @classmethod
-    def load(cls, path: str | Path) -> "RedTeamDetector":
-        """Load a detector previously written by :meth:`save`."""
+    def load(cls, path: str | Path, *, trusted: bool = False) -> "RedTeamDetector":
+        ## Load a detector previously written by save().
+        if not trusted:
+            raise ValueError(
+                "RedTeamDetector.load uses pickle; pass trusted=True only for "
+                "artifacts you created and trust."
+            )
         with Path(path).open("rb") as fh:
             payload = pickle.load(fh)
         detector = cls(config=payload["config"])
