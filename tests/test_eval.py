@@ -80,3 +80,9 @@ def test_reported_fp_rate_is_nonzero() -> None:
     """The hard negatives must actually cost the detector some false positives."""
     report, _ = evaluate(split_mode="grouped", seed=42)
     assert report.false_positive_rate > 0.0
+
+
+@pytest.mark.parametrize("bad_test_size", [0.0, -0.1, 1.0, 1.5])
+def test_evaluate_rejects_invalid_test_size(bad_test_size: float) -> None:
+    with pytest.raises(ValueError, match="test_size"):
+        evaluate(split_mode="grouped", test_size=bad_test_size, seed=42)

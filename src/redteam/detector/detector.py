@@ -78,7 +78,13 @@ class RedTeamDetector:
             raise ValueError("texts and labels must have equal length")
         if len(texts) == 0:
             raise ValueError("cannot train on an empty dataset")
-        self.pipeline.fit(list(texts), np.asarray(labels, dtype=int))
+        labels_arr = np.asarray(labels, dtype=int)
+        unique_labels = set(labels_arr.tolist())
+        if not unique_labels <= {0, 1}:
+            raise ValueError("labels must be binary: 0=benign, 1=adversarial")
+        if unique_labels != {0, 1}:
+            raise ValueError("labels must include both 0 and 1")
+        self.pipeline.fit(list(texts), labels_arr)
         self._fitted = True
         return self
 
@@ -94,7 +100,9 @@ class RedTeamDetector:
     def predict_proba(self, texts: Sequence[str]) -> np.ndarray:
         """Return P(adversarial) for each text as a 1-D float array."""
         self._check_fitted()
-        return self.pipeline.predict_proba(list(texts))[:, 1]
+        classes = self.pipeline.named_steps["clf"].classes_
+        adversarial_index = int(np.where(classes == 1)[0][0])
+        return self.pipeline.predict_proba(list(texts))[:, adversarial_index]
 
     def save(self, path: str | Path) -> None:
         ## Persist the fitted detector to a trusted local pickle artifact.

@@ -37,7 +37,7 @@ Dependencies: `numpy` and `scikit-learn` only. Model persistence uses the standa
 ## Installation
 
 ```bash
-pip install -e .
+python -m pip install -e .
 # for tests:
 pip install -e ".[dev]"
 ```
@@ -69,9 +69,9 @@ print(report.to_json())
 Command line:
 
 ```bash
+python -m pip install -e ".[dev]"
 redteam-eval --split-mode grouped --output report.json
-# or without installing the console script:
-python -m redteam.eval.harness --split-mode grouped
+PYTHONPATH=src python -m redteam.eval.harness --split-mode grouped
 ```
 
 ---
@@ -122,7 +122,7 @@ numbers above are the ones that matter.
 
 ```bash
 pip install -e ".[dev]"
-pytest -q                          ## 25 passed locally; asserts the metrics above
+PYTHONPATH=src pytest -q           ## asserts the metrics above
 redteam-eval --split-mode grouped  # prints the headline JSON report
 ```
 

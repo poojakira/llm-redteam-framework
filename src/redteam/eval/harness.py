@@ -79,6 +79,12 @@ def _template_prefix(template_id: str) -> str:
     return template_id.split(":", 1)[0]
 
 
+def _validate_test_size(test_size: float) -> float:
+    if not 0.0 < test_size < 1.0:
+        raise ValueError("test_size must be greater than 0 and less than 1")
+    return test_size
+
+
 def _grouped_split(
     corpus: list[GeneratedPrompt],
     test_size: float,
@@ -140,6 +146,7 @@ def evaluate(
     tuple[EvalReport, RedTeamDetector]
         The metrics report and the trained detector.
     """
+    test_size = _validate_test_size(test_size)
     corpus = build_corpus(seed=corpus_seed)
 
     x_train: list[str]
