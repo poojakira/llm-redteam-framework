@@ -40,7 +40,11 @@ pip install -e ".[dev]"
 Before submitting a pull request, ensure all tests pass:
 
 ```bash
-pytest
+ruff check src tests
+ruff format --check src tests
+pyright src tests
+bandit -q -r src
+pytest tests -q -ra -W error
 ```
 
 ### 6. Update Documentation

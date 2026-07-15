@@ -64,8 +64,14 @@ def test_grouped_split_covers_every_category() -> None:
     train, test = _grouped_split(corpus, test_size=0.3, seed=42)
     train_prefixes = {_template_prefix(p.template_id) for p in train}
     test_prefixes = {_template_prefix(p.template_id) for p in test}
-    for cat in ("direct_override", "role_switch", "context_escape",
-                "indirect_embed", "obfuscation", "multi_step"):
+    for cat in (
+        "direct_override",
+        "role_switch",
+        "context_escape",
+        "indirect_embed",
+        "obfuscation",
+        "multi_step",
+    ):
         assert cat in train_prefixes
         assert cat in test_prefixes
 

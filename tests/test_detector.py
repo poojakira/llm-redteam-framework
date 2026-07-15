@@ -72,6 +72,7 @@ def test_length_mismatch_raises() -> None:
     with pytest.raises(ValueError):
         det.train(["a", "b"], [1])
 
+
 def test_load_requires_explicit_trust(tmp_path) -> None:
     det = _train_small()
     path = tmp_path / "detector.pkl"
