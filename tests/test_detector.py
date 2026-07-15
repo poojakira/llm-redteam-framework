@@ -79,3 +79,15 @@ def test_load_requires_explicit_trust(tmp_path) -> None:
     det.save(path)
     with pytest.raises(ValueError, match="trusted=True"):
         RedTeamDetector.load(path)
+
+
+def test_train_rejects_non_binary_labels() -> None:
+    det = RedTeamDetector()
+    with pytest.raises(ValueError, match="binary"):
+        det.train(["benign", "attack"], [0, 2])
+
+
+def test_train_requires_both_classes() -> None:
+    det = RedTeamDetector()
+    with pytest.raises(ValueError, match="both 0 and 1"):
+        det.train(["benign", "also benign"], [0, 0])
