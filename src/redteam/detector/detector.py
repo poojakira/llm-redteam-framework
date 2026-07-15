@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import pickle
+import pickle  # nosec B403
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
@@ -64,7 +64,7 @@ class RedTeamDetector:
         """Whether :meth:`train` has been called successfully."""
         return self._fitted
 
-    def train(self, texts: Sequence[str], labels: Sequence[int]) -> "RedTeamDetector":
+    def train(self, texts: Sequence[str], labels: Sequence[int] | np.ndarray) -> "RedTeamDetector":
         """Fit the detector on labelled prompts.
 
         Parameters
@@ -113,7 +113,7 @@ class RedTeamDetector:
                 "artifacts you created and trust."
             )
         with Path(path).open("rb") as fh:
-            payload = pickle.load(fh)
+            payload = pickle.load(fh)  # nosec B301
         detector = cls(config=payload["config"])
         detector.pipeline = payload["pipeline"]
         detector._fitted = True

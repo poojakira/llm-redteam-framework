@@ -61,7 +61,7 @@ def build_corpus(
     n_adversarial_per_category:
         Number of prompts to draw from each of the six attack categories.
     n_benign:
-        Number of benign prompts (used both for training and for measuring the
+        Target number of benign prompts (used both for training and for measuring the
         false-positive rate on held-out benign text).
     seed:
         Seed for the internal ``random.Random`` -- fixing it makes the corpus,
@@ -72,7 +72,8 @@ def build_corpus(
     list[GeneratedPrompt]
         Shuffled list of labelled prompts.
     """
-    rng = random.Random(seed)
+    ## Deterministic corpus generation; not used for cryptography.
+    rng = random.Random(seed)  # nosec B311
     corpus: list[GeneratedPrompt] = []
 
     for category in AttackCategory.all():

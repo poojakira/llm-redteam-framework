@@ -92,7 +92,8 @@ def _grouped_split(
     category is represented on both sides while keeping test templates unseen
     during training.
     """
-    rng = random.Random(seed)
+    ## Deterministic evaluation split; not used for cryptography.
+    rng = random.Random(seed)  # nosec B311
     prefix_to_templates: dict[str, set[str]] = defaultdict(set)
     for p in corpus:
         prefix_to_templates[_template_prefix(p.template_id)].add(p.template_id)
@@ -141,6 +142,11 @@ def evaluate(
     """
     corpus = build_corpus(seed=corpus_seed)
 
+    x_train: list[str]
+    x_test: list[str]
+    y_train: np.ndarray
+    y_test: np.ndarray
+
     if split_mode == "grouped":
         train_items, test_items = _grouped_split(corpus, test_size, seed)
         x_train = [p.text for p in train_items]
@@ -151,9 +157,13 @@ def evaluate(
     elif split_mode == "random":
         texts = [p.text for p in corpus]
         labels = np.array([p.label for p in corpus], dtype=int)
-        x_train, x_test, y_train, y_test = train_test_split(
+        split = train_test_split(
             texts, labels, test_size=test_size, random_state=seed, stratify=labels
         )
+        x_train = list(split[0])
+        x_test = list(split[1])
+        y_train = np.asarray(split[2], dtype=int)
+        y_test = np.asarray(split[3], dtype=int)
         n_test_templates = -1  # not meaningful for a random split
     else:
         raise ValueError(f"unknown split_mode: {split_mode!r}")
@@ -168,7 +178,7 @@ def evaluate(
         labels=[LABEL_ADVERSARIAL],
         average="binary",
         pos_label=LABEL_ADVERSARIAL,
-        zero_division=0,
+        zero_division=0,  # type: ignore[reportArgumentType]
     )
 
     benign_mask = y_test == LABEL_BENIGN
@@ -203,9 +213,7 @@ def evaluate(
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point: run the evaluation and print / save the JSON report."""
     parser = argparse.ArgumentParser(description="Run held-out detector evaluation.")
-    parser.add_argument(
-        "--split-mode", choices=["grouped", "random"], default="grouped"
-    )
+    parser.add_argument("--split-mode", choices=["grouped", "random"], default="grouped")
     parser.add_argument("--test-size", type=float, default=0.3)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--corpus-seed", type=int, default=20240713)
