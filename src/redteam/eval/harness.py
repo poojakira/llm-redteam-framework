@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
+import os
 import random
 from collections import defaultdict
 from dataclasses import asdict, dataclass
@@ -33,6 +35,9 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 
 from ..detector import DetectorConfig, RedTeamDetector
+
+log = logging.getLogger(__name__)
+DEFAULT_FALSE_POSITIVE_BUDGET = 0.05
 from ..generators import (
     LABEL_ADVERSARIAL,
     LABEL_BENIGN,
@@ -54,6 +59,8 @@ class EvalReport:
     recall: float
     f1: float
     false_positive_rate: float
+    false_positive_budget: float
+    false_positive_budget_exceeded: bool
     accuracy: float
     n_total: int
     n_train: int
@@ -192,6 +199,13 @@ def evaluate(
     n_benign = int(benign_mask.sum())
     false_positives = int(np.sum((y_pred == LABEL_ADVERSARIAL) & benign_mask))
     fp_rate = float(false_positives / n_benign) if n_benign else 0.0
+    fp_budget = float(os.environ.get("FALSE_POSITIVE_BUDGET", DEFAULT_FALSE_POSITIVE_BUDGET))
+    fp_budget_exceeded = fp_rate > fp_budget
+    if fp_budget_exceeded:
+        log.warning(
+            "false_positive_budget_exceeded",
+            extra={"false_positive_rate": fp_rate, "budget": fp_budget},
+        )
 
     adv_mask = y_test == LABEL_ADVERSARIAL
     false_negatives = int(np.sum((y_pred == LABEL_BENIGN) & adv_mask))
@@ -203,6 +217,8 @@ def evaluate(
         recall=float(recall),
         f1=float(f1),
         false_positive_rate=fp_rate,
+        false_positive_budget=fp_budget,
+        false_positive_budget_exceeded=fp_budget_exceeded,
         accuracy=accuracy,
         n_total=len(corpus),
         n_train=len(x_train),
