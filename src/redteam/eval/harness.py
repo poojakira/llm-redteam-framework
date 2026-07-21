@@ -257,6 +257,8 @@ def main(argv: list[str] | None = None) -> int:
     print(report.to_json())
     if args.output:
         Path(args.output).write_text(report.to_json(), encoding="utf-8")
+    if report.false_positive_budget_exceeded and os.environ.get("ALLOW_HIGH_FP", "").lower() != "true":
+        return 2
     return 0
 
 
