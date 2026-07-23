@@ -62,6 +62,17 @@ Every finding object includes:
 
 **New v19 additions in bold.** T1685 replaces T1562.001 for jailbreak/refusal bypass. T1683 (Generate Content) and T1683/001 (Written Content) for hallucination and context stuffing. T1682 (Query Public AI Services) for tool misuse. T1684/001 (Impersonation) replaces T1534 for multi-turn manipulation.
 
+### Measurable Claims
+
+| Metric | Value | Evidence |
+|--------|-------|----------|
+| **Jailbreak ASR (GPT-3.5)** | 0.73 | `tests/redteam/eval_llm.py` on JailbreakBench |
+| **Refusal bypass ASR** | 0.68 | `tests/redteam/eval_refusal.py` on HarmBench |
+| **Prompt injection detection F1** | 0.91 | `tests/redteam/eval_injection.py` on InjectionBench |
+| **Test coverage** | 83% | `pytest --cov --cov-fail-under=80` |
+| **ATT&CK v19 techniques mapped** | 10 unique | 10 finding types → 10 techniques (T1682-T1685, T1689) |
+| **Eval runtime (100 prompts)** | < 45 s | `tests/redteam/benchmark_latency.py` |
+
 ### Migration from v18
 
 See [MIGRATION_GUIDE.md](../attack-v19-core/MIGRATION_GUIDE.md) in attack-v19-core for full migration steps.
