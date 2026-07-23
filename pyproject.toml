@@ -7,7 +7,7 @@ name = "llm-redteam-framework"
 version = "0.1.0"
 description = "Offline adversarial-prompt generation and detection framework (no live LLM API required)."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Pooja Kiran" }]
 keywords = ["llm", "red-team", "prompt-injection", "security", "guardrails"]
