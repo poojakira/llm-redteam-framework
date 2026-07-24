@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import pickle
 from dataclasses import dataclass
 from pathlib import Path
@@ -96,19 +97,76 @@ class RedTeamDetector:
         self._check_fitted()
         return self.pipeline.predict_proba(list(texts))[:, 1]
 
+    def _sha256(self, data: bytes) -> str:
+        """Return SHA-256 hex digest of ``data``."""
+        return hashlib.sha256(data).hexdigest()
+
     def save(self, path: str | Path) -> None:
-        """Persist the fitted detector to ``path`` via pickle."""
+        """Persist the fitted detector to ``path`` with SHA-256 integrity checksum.
+
+        Writes two files:
+        - ``path``: pickle-serialized model
+        - ``path + ".sha256"``: SHA-256 hex digest of the pickle bytes
+
+        Raises:
+            RuntimeError: if detector is not fitted.
+        """
         self._check_fitted()
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("wb") as fh:
-            pickle.dump({"config": self.config, "pipeline": self.pipeline}, fh)
+
+        payload = {"config": self.config, "pipeline": self.pipeline}
+        data = pickle.dumps(payload)
+        checksum = hashlib.sha256(data).hexdigest()
+
+        path.write_bytes(data)
+        (path.parent / (path.name + ".sha256")).write_text(checksum)
 
     @classmethod
-    def load(cls, path: str | Path) -> "RedTeamDetector":
-        """Load a detector previously written by :meth:`save`."""
-        with Path(path).open("rb") as fh:
-            payload = pickle.load(fh)
+    def load(cls, path: str | Path, *, trusted: bool = False) -> "RedTeamDetector":
+        """Load a detector previously written by :meth:`save`.
+
+        Security: refuses to load if the SHA-256 checksum file is missing or
+        the checksum doesn't match, preventing arbitrary code execution via
+        tampered pickle files.
+
+        Args:
+            path: Path to the pickle file.
+            trusted: If True, skip integrity check (for trusted sources only).
+                     Default False for safety.
+
+        Raises:
+            ValueError: if integrity check fails and ``trusted=False``.
+            FileNotFoundError: if model or checksum file is missing.
+            RuntimeError: if loaded payload is malformed.
+        """
+        path = Path(path)
+        checksum_path = path.parent / (path.name + ".sha256")
+
+        if not path.exists():
+            raise FileNotFoundError(f"Model file not found: {path}")
+        if not checksum_path.exists():
+            raise FileNotFoundError(
+                f"Integrity checksum file not found: {checksum_path}. "
+                "Model may have been saved without integrity protection or "
+                "the checksum file was removed. Refusing to load."
+            )
+
+        data = path.read_bytes()
+        expected = path.parent.joinpath(path.name + ".sha256").read_text().strip()
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+
+        if not trusted and actual != expected:
+            raise ValueError(
+                "Integrity check failed: model file checksum mismatch. "
+                "File may have been tampered with. Use trusted=True only if "
+                "you are certain the file is safe."
+            )
+
+        payload = pickle.loads(path.read_bytes())
+        if not isinstance(payload, dict) or "config" not in payload or "pipeline" not in payload:
+            raise RuntimeError("Malformed model payload: expected dict with 'config' and 'pipeline'")
+
         detector = cls(config=payload["config"])
         detector.pipeline = payload["pipeline"]
         detector._fitted = True
