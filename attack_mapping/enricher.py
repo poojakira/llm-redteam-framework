@@ -11,7 +11,7 @@ class ATTACKEnricher:
     def __init__(self, index: ATTACKIndex):
         self.index = index
         self._rule_table = {
-            "jailbreak_success": ["T1059", "T1685"],
+            "jailbreak_success": ["T1059", "T1685", "T1562.001"],
             "system_prompt_leak": ["T1552", "T1083"],
             "training_data_extraction": ["T1005", "T1213"],
             "model_inversion_success": ["T1552", "T1557"],

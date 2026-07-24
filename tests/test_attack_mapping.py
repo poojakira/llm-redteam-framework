@@ -15,7 +15,7 @@ class TestLLMRedTeamEnricher:
         mappings = enricher.enrich("jailbreak_success", {"confidence": 0.9})
         technique_ids = [m.technique_id for m in mappings]
         assert "T1059" in technique_ids
-        assert "T1562.001" in technique_ids
+        assert "T1685" in technique_ids
 
     def test_system_prompt_leak(self, enricher):
         mappings = enricher.enrich("system_prompt_leak", {"confidence": 0.8})
