@@ -98,7 +98,7 @@ def _grouped_split(
         prefix_to_templates[_template_prefix(p.template_id)].add(p.template_id)
 
     test_templates: set[str] = set()
-    for prefix, templates in prefix_to_templates.items():
+    for _prefix, templates in prefix_to_templates.items():
         ordered = sorted(templates)
         rng.shuffle(ordered)
         n_test = ceil(len(ordered) * test_size)

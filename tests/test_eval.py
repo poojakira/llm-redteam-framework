@@ -9,7 +9,6 @@ number.
 from __future__ import annotations
 
 import pytest
-
 from redteam.eval import evaluate
 from redteam.eval.harness import _grouped_split, _template_prefix
 from redteam.generators import build_corpus

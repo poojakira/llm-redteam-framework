@@ -152,7 +152,7 @@ class RedTeamDetector:
                 "the checksum file was removed. Refusing to load."
             )
 
-        data = path.read_bytes()
+        path.read_bytes()
         expected = path.parent.joinpath(path.name + ".sha256").read_text().strip()
         actual = hashlib.sha256(path.read_bytes()).hexdigest()
 
