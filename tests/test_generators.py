@@ -5,7 +5,6 @@ from __future__ import annotations
 import random
 
 import pytest
-
 from redteam.generators import (
     BENIGN_CATEGORY,
     GENERATORS,

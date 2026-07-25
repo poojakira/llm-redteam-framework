@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from redteam.detector import DetectorConfig, RedTeamDetector
 from redteam.generators import build_corpus
 
