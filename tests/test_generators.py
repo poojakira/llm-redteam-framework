@@ -25,7 +25,9 @@ def test_all_six_categories_present() -> None:
 
 
 @pytest.mark.parametrize("category", AttackCategory.all())
-def test_generator_returns_text_and_prefixed_template_id(category: AttackCategory) -> None:
+def test_generator_returns_text_and_prefixed_template_id(
+    category: AttackCategory,
+) -> None:
     rng = random.Random(SEED)
     text, template_id = GENERATORS[category](rng)
     assert isinstance(text, str) and text.strip()

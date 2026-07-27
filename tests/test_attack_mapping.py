@@ -10,21 +10,22 @@ def enricher():
     return ATTACKEnricher(index)
 
 
+def mapped_ids(mappings):
+    return {m.subtechnique_id or m.technique_id for m in mappings}
+
+
 class TestLLMRedTeamEnricher:
     def test_jailbreak(self, enricher):
         mappings = enricher.enrich("jailbreak_success", {"confidence": 0.9})
-        technique_ids = [m.technique_id for m in mappings]
-        assert "T1059" in technique_ids
-        assert "T1685" in technique_ids
+        assert "T1059" in mapped_ids(mappings)
+        assert "T1685" in mapped_ids(mappings)
 
     def test_system_prompt_leak(self, enricher):
         mappings = enricher.enrich("system_prompt_leak", {"confidence": 0.8})
-        technique_ids = [m.technique_id for m in mappings]
-        assert "T1552" in technique_ids
-        assert "T1083" in technique_ids
+        assert "T1552" in mapped_ids(mappings)
+        assert "T1083" in mapped_ids(mappings)
 
     def test_prompt_injection_rce(self, enricher):
         mappings = enricher.enrich("prompt_injection_rce", {"confidence": 0.95})
-        technique_ids = [m.technique_id for m in mappings]
-        assert "T1059.006" in technique_ids
-        assert "T1203" in technique_ids
+        assert "T1059.006" in mapped_ids(mappings)
+        assert "T1203" in mapped_ids(mappings)
