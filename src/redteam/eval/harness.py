@@ -203,9 +203,7 @@ def evaluate(
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point: run the evaluation and print / save the JSON report."""
     parser = argparse.ArgumentParser(description="Run held-out detector evaluation.")
-    parser.add_argument(
-        "--split-mode", choices=["grouped", "random"], default="grouped"
-    )
+    parser.add_argument("--split-mode", choices=["grouped", "random"], default="grouped")
     parser.add_argument("--test-size", type=float, default=0.3)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--corpus-seed", type=int, default=20240713)

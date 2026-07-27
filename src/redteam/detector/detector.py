@@ -165,7 +165,9 @@ class RedTeamDetector:
 
         payload = pickle.loads(path.read_bytes())
         if not isinstance(payload, dict) or "config" not in payload or "pipeline" not in payload:
-            raise RuntimeError("Malformed model payload: expected dict with 'config' and 'pipeline'")
+            raise RuntimeError(
+                "Malformed model payload: expected dict with 'config' and 'pipeline'"
+            )
 
         detector = cls(config=payload["config"])
         detector.pipeline = payload["pipeline"]
