@@ -126,9 +126,11 @@ class RedTeamDetector:
     def load(cls, path: str | Path, *, trusted: bool = False) -> "RedTeamDetector":
         """Load a detector previously written by :meth:`save`.
 
-        Security: refuses to load if the SHA-256 checksum file is missing or
-        the checksum doesn't match, preventing arbitrary code execution via
-        tampered pickle files.
+        Security: pickle is executable Python object serialization. A colocated
+        SHA-256 file only detects accidental corruption or mismatched local files;
+        it does not prove provenance and does not make an untrusted pickle safe.
+        Loading therefore requires ``trusted=True`` after the caller has verified
+        the artifact came from a trusted source.
 
         Args:
             path: Path to the pickle file.
@@ -152,18 +154,22 @@ class RedTeamDetector:
                 "the checksum file was removed. Refusing to load."
             )
 
-        path.read_bytes()
-        expected = path.parent.joinpath(path.name + ".sha256").read_text().strip()
-        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        data = path.read_bytes()
+        expected = checksum_path.read_text().strip()
+        actual = hashlib.sha256(data).hexdigest()
 
-        if not trusted and actual != expected:
+        if actual != expected:
             raise ValueError(
                 "Integrity check failed: model file checksum mismatch. "
-                "File may have been tampered with. Use trusted=True only if "
-                "you are certain the file is safe."
+                "File may have been corrupted or replaced."
+            )
+        if not trusted:
+            raise ValueError(
+                "Refusing to load pickle model without trusted=True. "
+                "Verify artifact provenance before loading serialized models."
             )
 
-        payload = pickle.loads(path.read_bytes())
+        payload = pickle.loads(data)
         if not isinstance(payload, dict) or "config" not in payload or "pipeline" not in payload:
             raise RuntimeError(
                 "Malformed model payload: expected dict with 'config' and 'pipeline'"
