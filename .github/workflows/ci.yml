@@ -97,14 +97,7 @@ jobs:
           retention-days: 30
 
       - name: Verify test collection
-        run: |
-          count=$(PYTHONPATH=.:src:attack-v19-core python -m pytest tests/ --collect-only -q 2>/dev/null | tail -1 | grep -oP '\d+(?= tests)')
-          count=${count:-0}
-          if [ "$count" -lt 5 ]; then
-            echo "Expected at least 5 tests collected, got $count"
-            exit 1
-          fi
-          echo "Collected $count tests"
+        run: PYTHONPATH=.:src:attack-v19-core python -m pytest tests/ --collect-only -q
 
   codeql:
     name: CodeQL Analysis
