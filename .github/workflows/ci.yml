@@ -59,6 +59,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+      - name: Checkout attack-v19-core
+        uses: actions/checkout@v4
+        with:
+          repository: poojakira/attack-v19-core
+          path: attack-v19-core
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
@@ -74,7 +80,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          PYTHONPATH=src pytest tests/ -v --tb=short \
+          PYTHONPATH=src:attack-v19-core pytest tests/ -v --tb=short \
             --cov=redteam \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
@@ -92,7 +98,7 @@ jobs:
 
       - name: Verify test collection
         run: |
-          count=$(PYTHONPATH=src python -m pytest tests/ --collect-only -q 2>/dev/null | tail -1 | grep -oP '\d+(?= tests)')
+          count=$(PYTHONPATH=src:attack-v19-core python -m pytest tests/ --collect-only -q 2>/dev/null | tail -1 | grep -oP '\d+(?= tests)')
           count=${count:-0}
           if [ "$count" -lt 5 ]; then
             echo "Expected at least 5 tests collected, got $count"
