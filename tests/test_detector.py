@@ -60,7 +60,9 @@ def test_save_load_roundtrip(tmp_path) -> None:
     before = det.predict(samples)
     path = tmp_path / "detector.pkl"
     det.save(path)
-    loaded = RedTeamDetector.load(path)
+    with pytest.raises(ValueError, match="trusted=True"):
+        RedTeamDetector.load(path)
+    loaded = RedTeamDetector.load(path, trusted=True)
     after = loaded.predict(samples)
     assert loaded.is_fitted
     assert np.array_equal(before, after)
