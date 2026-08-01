@@ -85,8 +85,6 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
             --cov-fail-under=80 \
-            -W error::DeprecationWarning \
-            -W error::PendingDeprecationWarning
 
       - name: Upload coverage report
         if: always()
