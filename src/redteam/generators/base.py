@@ -17,7 +17,7 @@ class AttackCategory(str, Enum):
     MULTI_STEP = "multi_step"
 
     @classmethod
-    def all(cls) -> list["AttackCategory"]:
+    def all(cls) -> list[AttackCategory]:
         """Return every attack category in declaration order."""
         return list(cls)
 

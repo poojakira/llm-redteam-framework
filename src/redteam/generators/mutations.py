@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import base64
 import random
-from typing import Callable
+from collections.abc import Callable
 
 # Common leetspeak substitutions.
 _LEET_MAP = {

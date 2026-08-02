@@ -19,9 +19,10 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from sklearn.metrics import f1_score, precision_score, recall_score
+
 from redteam.detector import DetectorConfig, RedTeamDetector
 from redteam.generators import build_corpus
-from sklearn.metrics import f1_score, precision_score, recall_score
 
 # ------------------------------------------------------------------ #
 # InjectionBench-style fixture

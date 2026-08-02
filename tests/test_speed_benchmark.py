@@ -18,6 +18,7 @@ import random
 import time
 
 import pytest
+
 from redteam.detector import DetectorConfig, RedTeamDetector
 from redteam.generators import build_corpus
 from redteam.generators.base import AttackCategory

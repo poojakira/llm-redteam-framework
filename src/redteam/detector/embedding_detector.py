@@ -11,7 +11,7 @@ Fallback: uses TF-IDF detector if sentence-transformers unavailable.
 from __future__ import annotations
 
 import logging
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 from sklearn.linear_model import LogisticRegression
@@ -84,7 +84,7 @@ class EmbeddingDetector:
             normalize_embeddings=True,
         )
 
-    def train(self, texts: Sequence[str], labels: Sequence[int]) -> "EmbeddingDetector":
+    def train(self, texts: Sequence[str], labels: Sequence[int]) -> EmbeddingDetector:
         """Fit the detector on labelled prompts.
 
         Parameters

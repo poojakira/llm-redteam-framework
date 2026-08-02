@@ -12,10 +12,11 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from sklearn.metrics import classification_report, f1_score
+
 from redteam.data import REAL_INJECTIONS
 from redteam.detector import DetectorConfig, RedTeamDetector
 from redteam.generators import build_corpus
-from sklearn.metrics import classification_report, f1_score
 
 SEED = 20240713
 
