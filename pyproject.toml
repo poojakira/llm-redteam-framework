@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0"]
 
 [project.scripts]
 redteam-eval = "redteam.eval.harness:main"
@@ -29,3 +29,11 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q"
+
+[tool.coverage.run]
+source = ["redteam"]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+fail_under = 83
+show_missing = true
