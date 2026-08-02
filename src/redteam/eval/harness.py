@@ -159,7 +159,7 @@ def evaluate(
         raise ValueError(f"unknown split_mode: {split_mode!r}")
 
     detector = RedTeamDetector(config=detector_config)
-    detector.train(x_train, y_train)
+    detector.train(x_train, y_train, include_real_data=False)
     y_pred = detector.predict(x_test)
 
     precision, recall, f1, _ = precision_recall_fscore_support(
