@@ -1,0 +1,18 @@
+{
+  "schema_version": "official-llm-benchmark-manifest-v1",
+  "claim_policy": "Do not claim official InjectionBench or JailbreakBench validation until immutable dataset revisions, license terms, raw predictions, and evaluation outputs are stored.",
+  "datasets": [
+    {
+      "name": "InjectionBench",
+      "status": "not_downloaded",
+      "required_for_official_claim": true,
+      "required_evidence": ["source_url", "revision", "license", "raw_predictions", "metrics"]
+    },
+    {
+      "name": "JailbreakBench",
+      "status": "not_downloaded",
+      "required_for_official_claim": true,
+      "required_evidence": ["source_url", "revision", "license", "raw_predictions", "metrics"]
+    }
+  ]
+}
