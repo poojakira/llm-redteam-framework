@@ -65,7 +65,14 @@ class RedTeamDetector:
         """Whether :meth:`train` has been called successfully."""
         return self._fitted
 
-    def train(self, texts: Sequence[str], labels: Sequence[int]) -> "RedTeamDetector":
+    def train(
+        self,
+        texts: Sequence[str],
+        labels: Sequence[int],
+        *,
+        external_corpus: Sequence[tuple[str, int]] | None = None,
+        include_real_data: bool = True,
+    ) -> "RedTeamDetector":
         """Fit the detector on labelled prompts.
 
         Parameters
@@ -74,12 +81,43 @@ class RedTeamDetector:
             Prompt strings.
         labels:
             Matching binary labels (``1`` adversarial, ``0`` benign).
+        external_corpus:
+            Optional sequence of ``(text, label)`` pairs to merge with the
+            training data. If provided, these are appended to ``texts``/``labels``.
+        include_real_data:
+            If True (default), automatically loads the real-world injection
+            corpus from :mod:`redteam.data` and merges it into training.
+            Set to False to train on only the provided data.
         """
         if len(texts) != len(labels):
             raise ValueError("texts and labels must have equal length")
-        if len(texts) == 0:
+        if len(texts) == 0 and not external_corpus and not include_real_data:
             raise ValueError("cannot train on an empty dataset")
-        self.pipeline.fit(list(texts), np.asarray(labels, dtype=int))
+
+        all_texts = list(texts)
+        all_labels = list(labels)
+
+        # Merge external corpus if provided.
+        if external_corpus:
+            for text, label in external_corpus:
+                all_texts.append(text)
+                all_labels.append(label)
+
+        # Auto-load real-world injection data if available.
+        if include_real_data:
+            try:
+                from redteam.data import REAL_INJECTIONS
+
+                for text, label in REAL_INJECTIONS:
+                    all_texts.append(text)
+                    all_labels.append(label)
+            except ImportError:
+                pass  # Data module not available; skip silently.
+
+        if len(all_texts) == 0:
+            raise ValueError("cannot train on an empty dataset")
+
+        self.pipeline.fit(all_texts, np.asarray(all_labels, dtype=int))
         self._fitted = True
         return self
 
