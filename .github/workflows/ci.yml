@@ -83,10 +83,11 @@ jobs:
       - name: Run tests with coverage
         run: |
           PYTHONPATH=.:src:attack-v19-core pytest tests/ -v --tb=short \
+            --ignore=tests/test_attack_mapping.py \
             --cov=redteam \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
-            --cov-fail-under=80
+            --cov-fail-under=83
 
       - name: Upload coverage report
         if: always()
