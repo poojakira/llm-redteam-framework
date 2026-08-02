@@ -170,11 +170,7 @@ class RedTeamDetector:
             )
 
         payload = pickle.loads(data)
-        if (
-            not isinstance(payload, dict)
-            or "config" not in payload
-            or "pipeline" not in payload
-        ):
+        if not isinstance(payload, dict) or "config" not in payload or "pipeline" not in payload:
             raise RuntimeError(
                 "Malformed model payload: expected dict with 'config' and 'pipeline'"
             )
