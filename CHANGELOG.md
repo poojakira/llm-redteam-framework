@@ -48,4 +48,4 @@
 - Downgrade Attack (T1689) for certified defense bypass scenarios
 
 ### Migration
-See [attack-v19-core MIGRATION_GUIDE.md](../attack-v19-core/MIGRATION_GUIDE.md) for full migration steps.
+See the [attack-v19-core migration guide](https://github.com/poojakira/attack-v19-core/blob/main/MIGRATION_GUIDE.md) for full migration steps.
