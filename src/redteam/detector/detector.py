@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import pickle
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -72,7 +72,7 @@ class RedTeamDetector:
         *,
         external_corpus: Sequence[tuple[str, int]] | None = None,
         include_real_data: bool = True,
-    ) -> "RedTeamDetector":
+    ) -> RedTeamDetector:
         """Fit the detector on labelled prompts.
 
         Parameters
@@ -161,7 +161,7 @@ class RedTeamDetector:
         (path.parent / (path.name + ".sha256")).write_text(checksum)
 
     @classmethod
-    def load(cls, path: str | Path, *, trusted: bool = False) -> "RedTeamDetector":
+    def load(cls, path: str | Path, *, trusted: bool = False) -> RedTeamDetector:
         """Load a detector previously written by :meth:`save`.
 
         Security: pickle is executable Python object serialization. A colocated

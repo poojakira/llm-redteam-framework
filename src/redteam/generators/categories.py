@@ -15,7 +15,7 @@ is not artificially optimistic.
 from __future__ import annotations
 
 import random
-from typing import Callable
+from collections.abc import Callable
 
 from .base import AttackCategory
 from .mutations import MUTATIONS
