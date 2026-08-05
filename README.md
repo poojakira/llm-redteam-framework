@@ -128,6 +128,9 @@ Findings map to these techniques:
 | multi_turn_manipulation | T1566, T1684, T1684/001 |
 | context_stuffing | T1027, T1564, T1683/001 |
 
+> **Note on ATT&CK technique IDs:** T1682–T1689 are v19-era proposed techniques. Some (T1684, T1687, T1689) are not yet in the public MITRE ATT&CK Navigator dataset as of v19.1. Treat these mappings as best-effort approximations until official MITRE publication.
+
+
 Export a Navigator layer:
 
 ```bash
@@ -145,3 +148,4 @@ python -m attack_mapping.reporter --output navigator_layer.json
 ## License
 
 MIT
+
