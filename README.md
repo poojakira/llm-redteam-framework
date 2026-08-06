@@ -10,6 +10,51 @@
 
 ---
 
+## CI/CD Security Pipeline
+
+```
+PR Push
+   │
+   ▼
+GitHub Actions (.github/workflows/pr-scan.yml)
+   │  runs llm-redteam scan on test corpus
+   │
+   ├─▶ POST /scan ──▶ PIILeakageDetector
+   │                ──▶ RAGPoisoningDetector  
+   │                ──▶ EmbeddingSimilarityDetector
+   │                ──▶ CanaryTokenTracker
+   │
+   ▼
+SARIF 2.1.0 output (results/scan.sarif)
+   │
+   ▼
+github/codeql-action/upload-sarif
+   │
+   ▼
+GitHub Security Tab (Code Scanning Alerts)
+   │
+   └─▶ HIGH/CRITICAL finding? → PR BLOCKED ❌
+       No findings?            → PR PASSES ✅
+```
+
+**Honest F1 metrics:**
+| Split | F1 | Notes |
+|-------|-----|-------|
+| OOD transfer eval (grouped) | 0.70 | Novel attack categories not seen in training — operationally relevant number |
+| Curated in-distribution | 0.93 | Train/test share same attack categories — optimistic upper bound |
+
+## OWASP LLM Top 10 Coverage
+
+| OWASP ID | Title | Detector | Status |
+|----------|-------|----------|--------|
+| LLM01 | Prompt Injection | EmbeddingSimilarityDetector | ✅ Implemented |
+| LLM06 | Sensitive Info Disclosure | PIILeakageDetector | ✅ Implemented |
+| LLM07 | RAG Poisoning | RAGPoisoningDetector + CanaryTokenTracker | ✅ Implemented |
+| LLM02 | Insecure Output | SARIF output schema | ✅ Partial |
+| LLM08-10 | Various | — | 🔲 Planned |
+
+---
+
 ## Problem Statement
 
 Manual LLM security reviews do not scale. This framework provides **automated, continuous security assessment of LLM and RAG pipelines**, replacing point-in-time reviews with CI-integrated guardrails — enabling dev teams to self-serve security validation without bottlenecking on a security team.

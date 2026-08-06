@@ -1,0 +1,7 @@
+{
+  "f1_ood": 0.70,
+  "f1_curated": 0.93,
+  "eval_method": "grouped split - attack categories held out for OOD eval",
+  "dataset": "internal injection corpus (HackAPrompt-style)",
+  "note": "F1=0.70 is the honest out-of-distribution number on novel attack patterns not seen during training. F1=0.93 is on a curated in-distribution split. OOD number is the operationally relevant one."
+}
