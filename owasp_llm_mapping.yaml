@@ -1,0 +1,142 @@
+# owasp_llm_mapping.yaml
+# ──────────────────────────────────────────────────────────────────────────────
+# Maps each detector module in llm-redteam-framework to its OWASP LLM Top 10
+# identifier (2025 edition) and MITRE ATT&CK technique.
+#
+# Reference: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+# ATT&CK:    https://attack.mitre.org/  (v19)
+# ──────────────────────────────────────────────────────────────────────────────
+
+version: "2025"
+source: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+
+mappings:
+  - owasp_id: LLM01
+    title: Prompt Injection
+    description: >
+      Attackers manipulate LLM inputs through crafted prompts to override
+      system instructions, exfiltrate data, or cause the model to perform
+      unintended actions.
+    detectors:
+      - module: redteam.detectors.embedding_similarity
+        class: EmbeddingSimilarityDetector
+        rule_ids:
+          - LLM01-EmbeddingSimilarity
+        technique: cosine similarity against seed corpus of known injection patterns
+    attack_techniques:
+      - id: T1059
+        name: Command and Scripting Interpreter
+        note: LLM used as interpreter to execute attacker-injected instructions
+      - id: T1685
+        name: Adversarial ML — Prompt Injection
+        note: MITRE ATT&CK v19 ML-specific technique
+
+  - owasp_id: LLM02
+    title: Insecure Output Handling
+    description: >
+      LLM outputs are not validated before being passed to downstream systems,
+      enabling XSS, SSRF, code injection, or privilege escalation.
+    detectors:
+      - module: redteam.output.sarif
+        class: findings_to_sarif
+        rule_ids:
+          - LLM02-InsecureOutput
+        technique: output pattern scanning for dangerous content
+    attack_techniques:
+      - id: T1059.007
+        name: JavaScript execution via unsanitised LLM output
+
+  - owasp_id: LLM06
+    title: Sensitive Information Disclosure
+    description: >
+      LLMs may inadvertently reveal confidential data, PII, or secrets embedded
+      in training data or injected via context documents.
+    detectors:
+      - module: redteam.detectors.pii_leakage
+        class: PIILeakageDetector
+        rule_ids:
+          - SEC-OPENAI-KEY
+          - SEC-AWS-KEY
+          - SEC-AWS-SECRET
+          - SEC-GH-TOKEN
+          - SEC-PRIVATE-KEY
+          - SEC-BASIC-AUTH
+          - SEC-DB-URL
+          - SEC-BEARER
+          - SEC-GENERIC-PWD
+          - SEC-HIGH-ENTROPY
+          - PII-EMAIL
+          - PII-SSN
+          - PII-CREDIT-CARD
+          - PII-PHONE
+          - PII-NER-PERSON
+          - PII-NER-ORG
+        technique: >
+          Regex pattern matching for known secret formats +
+          Shannon entropy analysis for unknown credentials +
+          spaCy NER for named entities
+    attack_techniques:
+      - id: T1552
+        name: Unsecured Credentials
+      - id: T1530
+        name: Data from Cloud Storage
+
+  - owasp_id: LLM07
+    title: Insecure Plugin Design / RAG Poisoning
+    description: >
+      Adversarial documents injected into retrieval-augmented generation (RAG)
+      pipelines steer LLM behaviour, leak canary tokens, or bypass safety controls.
+    detectors:
+      - module: redteam.detectors.rag_poisoning
+        class: RAGPoisoningDetector
+        rule_ids:
+          - LLM07-RAGPoisoning
+          - LLM07-CanaryLeakage
+        technique: >
+          Regex injection pattern scanning on context documents +
+          UUID canary token injection and retrieval verification
+      - module: redteam.detectors.canary_tracker
+        class: CanaryTokenTracker
+        rule_ids:
+          - LLM07-CanaryFired
+        technique: >
+          Per-document UUID canary embedding; cross-session fired-canary tracking
+    attack_techniques:
+      - id: T1195.001
+        name: Supply Chain Compromise — third-party data poisoning
+      - id: T1685
+        name: Adversarial ML — Training Data Poisoning
+
+  - owasp_id: LLM08
+    title: Excessive Agency
+    description: >
+      LLMs granted excessive permissions perform unintended actions when
+      manipulated via prompt injection or ambiguous instructions.
+    detectors: []
+    notes: >
+      Not yet implemented. Planned: action scope validator that checks whether
+      a requested tool call is within the declared permission boundary.
+    attack_techniques:
+      - id: T1078
+        name: Valid Accounts — misuse of legitimate LLM tool-call credentials
+
+  - owasp_id: LLM09
+    title: Overreliance
+    description: >
+      Users or downstream systems trust LLM outputs without verification,
+      leading to errors propagating into production decisions.
+    detectors: []
+    notes: Out of scope for this scanner (runtime behaviour, not static analysis).
+
+  - owasp_id: LLM10
+    title: Model Theft
+    description: >
+      Attackers extract a functional replica of a proprietary LLM via repeated
+      queries (model extraction / distillation attacks).
+    detectors: []
+    notes: >
+      Detection requires request-rate and output-diversity monitoring at the
+      serving layer. Not implemented in this static scanner.
+    attack_techniques:
+      - id: T1682
+        name: ML Model Access — extraction via black-box queries

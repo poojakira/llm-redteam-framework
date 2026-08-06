@@ -1,0 +1,83 @@
+name: LLM Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write   # required for SARIF upload to GitHub Advanced Security
+  pull-requests: write
+
+jobs:
+  llm-security-scan:
+    name: LLM Red-Team Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run LLM security scan → SARIF output
+        id: scan
+        run: |
+          python -m redteam.cli.scan \
+            --input tests/fixtures/scan_corpus.jsonl \
+            --output-sarif results/scan.sarif \
+            --fail-on-high
+        continue-on-error: true   # capture exit code; block PR below
+
+      - name: Upload SARIF to GitHub Advanced Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results/scan.sarif
+          category: llm-redteam
+
+      - name: Fail PR if HIGH/CRITICAL findings present
+        if: steps.scan.outcome == 'failure'
+        run: |
+          echo "::error::LLM security scan found HIGH or CRITICAL findings."
+          echo "::error::Review the Security tab for details: https://github.com/${{ github.repository }}/security/code-scanning"
+          exit 1
+
+  codeql:
+    name: CodeQL Static Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: codeql-python
