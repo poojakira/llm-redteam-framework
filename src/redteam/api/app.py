@@ -15,6 +15,7 @@ Usage
 """
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any
 
@@ -33,11 +34,24 @@ from redteam.detectors.rag_poisoning import RAGPoisoningDetector
 from redteam.detectors.embedding_similarity import EmbeddingSimilarityDetector
 from redteam.output.sarif import findings_to_sarif
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title="LLM Red-Team Framework",
     version="1.0.0",
     description="Scan LLM prompt/response pairs for security findings.",
 )
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Catch-all handler: log full details server-side, return generic message to client.
+
+    Deliberately omits traceback and exception text from the response body to
+    prevent information disclosure (CWE-209).
+    """
+    logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"error": "internal error"})
 
 # ── Prometheus metrics ─────────────────────────────────────────────────────────
 SCAN_REQUESTS = Counter("scan_requests_total", "Total /scan requests", ["status"])
@@ -168,4 +182,5 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
 
     except Exception as exc:  # noqa: BLE001
         SCAN_REQUESTS.labels(status="error").inc()
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        logger.exception("Scan error for scan_id=%s", scan_id)
+        raise HTTPException(status_code=500, detail="internal error") from exc
