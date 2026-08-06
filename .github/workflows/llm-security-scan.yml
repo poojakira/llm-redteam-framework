@@ -1,0 +1,73 @@
+name: LLM Security Scan
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    # Daily scan at 06:00 UTC — continuous assurance, not point-in-time
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: read
+  security-events: write   # Required to upload SARIF to GitHub Code Scanning
+  actions: read
+
+jobs:
+  llm-security-scan:
+    name: LLM Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install llm-redteam-framework
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run LLM security scan (SARIF output)
+        run: |
+          redteam-eval \
+            --split-mode grouped \
+            --format sarif \
+            --output results.sarif
+        env:
+          # fail_on: HIGH means exit code 1 if any HIGH or CRITICAL finding
+          LLM_SECURITY_FAIL_ON: high
+
+      - name: Upload SARIF to GitHub Code Scanning
+        # Runs even if the scan step fails — so findings appear in the Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+          category: llm-security
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v \
+            --cov=redteam \
+            --cov-report=term-missing \
+            --cov-fail-under=83
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
