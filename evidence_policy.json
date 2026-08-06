@@ -1,0 +1,19 @@
+{
+  "_note": "Template. CI fills git_commit, timestamps, dependency_versions.",
+  "git_commit": "__CI_FILLED__",
+  "dataset_name": "internal injection corpus",
+  "dataset_hash": "__sha256_of_corpus__",
+  "model_hash": "__sha256_of_detector_pkl__",
+  "configuration_hash": "__CI_FILLED__",
+  "random_seed": 42,
+  "dependency_versions": {},
+  "hardware": "CI runner",
+  "execution_command": "pytest tests/ -v --cov=src/redteam",
+  "started_at": "__CI_FILLED__",
+  "completed_at": "__CI_FILLED__",
+  "metrics": {
+    "f1_ood": 0.70,
+    "f1_curated": 0.93,
+    "note": "F1=0.70 on out-of-distribution grouped split. F1=0.93 on curated in-distribution split."
+  }
+}
