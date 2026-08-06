@@ -1,0 +1,118 @@
+# llm-security-config.yaml
+# Secure-by-default configuration for llm-redteam-framework.
+# Every default is chosen to BLOCK threats unless explicitly relaxed.
+# Change these only if you have a documented reason — the defaults are the secure choice.
+
+# ──────────────────────────────────────────────────────────
+# Detection thresholds
+# ──────────────────────────────────────────────────────────
+
+detection:
+  # Confidence threshold above which a finding is reported.
+  # DEFAULT: 0.70 — matches the realistic OOD F1=0.70 operating point.
+  # LOWER values = more findings, more false positives.
+  # RAISE only if you're accepting higher false-negative risk.
+  confidence_threshold: 0.70
+
+  # Whether to run the obfuscation decoder before classification.
+  # DEFAULT: true — attackers routinely base64-encode or leetspeak injections.
+  # Disabling this lets obfuscated injections bypass the classifier.
+  decode_obfuscation: true
+
+  # Whether to run multi-turn analysis (stateful conversation tracking).
+  # DEFAULT: true — multi-step escalation is a real attack vector.
+  # Disable only for stateless/single-turn pipelines where it adds overhead.
+  multi_turn_analysis: true
+
+# ──────────────────────────────────────────────────────────
+# Severity configuration
+# ──────────────────────────────────────────────────────────
+
+severity:
+  # Mapping of internal threat categories to SARIF severity levels.
+  # These drive the fail_on gate below.
+  # SECURE DEFAULT: direct_override and obfuscation are HIGH because
+  # they are the most reliable indicators of malicious intent.
+  direct_override: HIGH
+  role_switch: HIGH
+  obfuscation: HIGH
+  context_escape: MEDIUM
+  indirect_embed: MEDIUM
+  multi_step: MEDIUM
+  system_prompt_leak: CRITICAL
+  tool_misuse: HIGH
+
+# ──────────────────────────────────────────────────────────
+# CI gate behavior
+# ──────────────────────────────────────────────────────────
+
+gate:
+  # Severity level at or above which the tool exits with code 1.
+  # Exit code 1 causes GitHub Actions to fail the status check.
+  # DEFAULT: HIGH — blocks PRs with high-confidence injections.
+  # Setting to CRITICAL only would allow HIGH findings through; not recommended.
+  fail_on: HIGH
+
+  # Dry run mode: scan and report findings but always exit 0.
+  # USE CASE: onboarding a new repo — see what would be flagged before enforcing.
+  # DEFAULT: false — the secure path is to enforce by default.
+  # Set to true temporarily when first adding this scan to an existing pipeline.
+  dry_run: false
+
+  # Whether to emit SARIF output in addition to the human-readable report.
+  # DEFAULT: true — SARIF enables GitHub Code Scanning integration for free.
+  emit_sarif: true
+
+  # SARIF output path.
+  sarif_output: results.sarif
+
+# ──────────────────────────────────────────────────────────
+# Observability
+# ──────────────────────────────────────────────────────────
+
+logging:
+  # Log format. DEFAULT: json — structured logs are parseable by SIEM tools.
+  # json fields: timestamp, request_id, threat_type, severity, confidence_score, remediation_hint
+  # Change to "text" only for local development debugging.
+  format: json
+
+  # Log level. DEFAULT: INFO — captures all findings plus scan start/end events.
+  # Set to DEBUG for verbose output during development.
+  level: INFO
+
+  # Whether to include the raw flagged prompt text in logs.
+  # DEFAULT: false — prompt content may contain PII or confidential data.
+  # Enabling this is a data governance decision; consult your security policy first.
+  log_prompt_content: false
+
+# ──────────────────────────────────────────────────────────
+# Rate limiting
+# ──────────────────────────────────────────────────────────
+
+rate_limiting:
+  # Maximum scan requests per minute when running as a service.
+  # DEFAULT: 60 — prevents abuse of the scanning endpoint itself.
+  # A security tool that can be DoS'd via excessive scan requests is itself a vulnerability.
+  max_requests_per_minute: 60
+
+  # Maximum prompt length in characters accepted for scanning.
+  # DEFAULT: 32768 — 32K chars covers typical LLM context windows.
+  # Accepting unbounded inputs enables resource exhaustion attacks against the scanner.
+  max_prompt_length_chars: 32768
+
+# ──────────────────────────────────────────────────────────
+# Output
+# ──────────────────────────────────────────────────────────
+
+output:
+  # Include remediation hints in every finding.
+  # DEFAULT: true — developers need to know HOW to fix, not just that something was flagged.
+  include_remediation_hints: true
+
+  # Include OWASP LLM Top 10 ID in every finding.
+  # DEFAULT: true — maps findings to the standard threat catalog.
+  include_owasp_mapping: true
+
+  # Include ATT&CK v19 technique ID in every finding.
+  # DEFAULT: true — enables correlation with broader threat intelligence.
+  include_attack_mapping: true
