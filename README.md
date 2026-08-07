@@ -1,3 +1,25 @@
+# llm-redteam-framework
+
+> ⚠️ **HONEST STATUS: F1=0.70 OOD (out-of-distribution). Uses TF-IDF + LogisticRegression — a 2018-era approach. For production prompt injection detection, see [LLM Guard](https://github.com/protectai/llm-guard) or [Lakera Guard](https://www.lakera.ai/).**
+
+## Limitations You Should Know
+
+- **Detection approach is outdated.** TF-IDF char n-grams cannot understand semantic meaning. Modern detectors use transformer embeddings (DeBERTa, sentence-transformers).
+- **Trained on self-generated data.** The detector is trained on its own generator output. It cannot detect novel attack strategies it hasn't seen templated versions of.
+- **F1=0.93 on curated split is misleading.** The honest number is F1=0.70 on out-of-distribution (grouped) evaluation. Template reuse across train/test causes data leakage in the curated split.
+- **No multi-modal support.** Zero coverage for image/audio injection vectors (2025+ attack surface).
+- **Does not test actual LLMs.** Despite the name "red team framework", it never sends prompts to an LLM.
+
+## What It's Good For
+
+- Learning how prompt injection detection works at a conceptual level
+- Understanding proper OOD evaluation methodology (grouped splits)
+- Template for building FastAPI security scanning services with SARIF output
+- Reference for the OWASP LLM Top 10 detection categories
+
+---
+
+
 
 ## FastAPI Service
 
