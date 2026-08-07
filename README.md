@@ -35,7 +35,7 @@ curl http://localhost:8000/health
 [![OWASP LLM Top 10](https://img.shields.io/badge/OWASP%20LLM-Top%2010%20Mapped-orange)](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 [![SARIF](https://img.shields.io/badge/SARIF-GitHub%20Code%20Scanning-blueviolet)](https://docs.github.com/en/code-security/code-scanning)
 
-[Live Dashboard](https://poojakira.github.io/llm-redteam-framework/)
+[Demo Dashboard (static)](https://poojakira.github.io/llm-redteam-framework/)
 
 ---
 
