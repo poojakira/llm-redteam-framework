@@ -7,6 +7,7 @@ SARIF spec: https://docs.oasis-open.org/sarif/sarif/v2.1.0/
 GitHub Code Scanning requires SARIF 2.1.0 with a 'runs[].tool.driver' that
 has 'name', 'rules', and 'results' arrays.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -146,8 +147,7 @@ def findings_to_sarif(
     # Collect only the rules that actually appear in this scan's findings
     referenced_rule_ids = {f.get("rule_id", "") for f in findings}
     active_rules = [
-        r for r in _RULES
-        if any(r["id"] in rid or rid in r["id"] for rid in referenced_rule_ids)
+        r for r in _RULES if any(r["id"] in rid or rid in r["id"] for rid in referenced_rule_ids)
     ]
     # Always include all rules so the SARIF file is self-describing
     rules_to_emit = _RULES

@@ -21,11 +21,11 @@ Exit codes
 1   HIGH or CRITICAL finding detected and --fail-on-high was specified.
 2   Unexpected error during scan.
 """
+
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import uuid
 from pathlib import Path
@@ -39,10 +39,10 @@ sys.path.insert(0, str(_SRC_DIR))
 from redteam.detectors import EmbeddingSimilarityDetector, PIILeakageDetector
 from redteam.output import findings_to_sarif, sarif_has_high_or_critical
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _load_records(input_path: Path) -> list[dict[str, Any]]:
     """Read a JSONL file and return a list of record dicts."""
@@ -101,9 +101,7 @@ def _scan_records(
                 f["rule_id"] = "LLM01-IndirectInjection"
                 f["owasp_llm_id"] = "LLM01"
                 f["detector"] = "embedding_similarity_indirect"
-                f["message"] = (
-                    f"[Indirect/RAG injection] {f.get('message', '')}"
-                )
+                f["message"] = f"[Indirect/RAG injection] {f.get('message', '')}"
             all_findings.extend(doc_findings)
 
     return all_findings
@@ -135,6 +133,7 @@ def _write_sarif(sarif_doc: dict[str, Any], output_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main(argv: list[str] | None = None) -> int:
     """Entry point. Returns exit code."""
@@ -231,8 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     high_crit = [f for f in findings if f.get("severity") in ("HIGH", "CRITICAL")]
 
     print(
-        f"[INFO] Scan complete. {total} finding(s), "
-        f"{len(high_crit)} HIGH/CRITICAL.",
+        f"[INFO] Scan complete. {total} finding(s), " f"{len(high_crit)} HIGH/CRITICAL.",
         file=sys.stderr,
     )
 

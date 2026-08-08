@@ -16,6 +16,7 @@ confirming both retrieval and verbatim reproduction.
 
 OWASP LLM Top 10: LLM07 (RAG Poisoning), LLM06 (Sensitive Information Disclosure)
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -30,11 +31,12 @@ from typing import Any
 @dataclass
 class CanaryRecord:
     """Metadata for a tracked canary token."""
-    canary_id: str          # e.g. "CANARY-A3F1B2C4D5E6"
-    doc_id: str             # caller-supplied document identifier
-    doc_fingerprint: str    # SHA-256[:16] of the original document text
-    inserted_at: float      # unix timestamp
-    fired: bool = False     # True once detected in an LLM output
+
+    canary_id: str  # e.g. "CANARY-A3F1B2C4D5E6"
+    doc_id: str  # caller-supplied document identifier
+    doc_fingerprint: str  # SHA-256[:16] of the original document text
+    inserted_at: float  # unix timestamp
+    fired: bool = False  # True once detected in an LLM output
     fired_at: float = 0.0
     fired_in_session: str = ""
 
@@ -155,17 +157,19 @@ class CanaryTokenTracker:
         """Convert fired canaries to standard finding dicts."""
         findings: list[dict[str, Any]] = []
         for canary_id, record in fired.items():
-            findings.append({
-                "rule_id": "LLM07-CanaryFired",
-                "severity": "HIGH",
-                "message": (
-                    f"Canary token {canary_id!r} embedded in document {record.doc_id!r} "
-                    f"(fingerprint={record.doc_fingerprint}) appeared verbatim in LLM output. "
-                    f"Session: {record.fired_in_session or 'unknown'}."
-                ),
-                "detector": "canary_tracker",
-                "owasp_llm_id": "LLM07",
-            })
+            findings.append(
+                {
+                    "rule_id": "LLM07-CanaryFired",
+                    "severity": "HIGH",
+                    "message": (
+                        f"Canary token {canary_id!r} embedded in document {record.doc_id!r} "
+                        f"(fingerprint={record.doc_fingerprint}) appeared verbatim in LLM output. "
+                        f"Session: {record.fired_in_session or 'unknown'}."
+                    ),
+                    "detector": "canary_tracker",
+                    "owasp_llm_id": "LLM07",
+                }
+            )
         return findings
 
     # ── Registry access ────────────────────────────────────────────────────────

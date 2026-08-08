@@ -121,7 +121,7 @@ class TestDetectionRate:
         detection_rate = detected / total
 
         print(f"\n{'='*70}")
-        print(f"EXTERNAL BENCHMARK: EmbeddingSimilarityDetector vs Published Corpus")
+        print("EXTERNAL BENCHMARK: EmbeddingSimilarityDetector vs Published Corpus")
         print(f"{'='*70}")
         print(f"Total injections tested: {total}")
         print(f"Detected: {detected}")
@@ -140,8 +140,8 @@ class TestDetectionRate:
         # Threshold is intentionally low: we're documenting baseline performance,
         # not asserting production readiness.
         assert detection_rate > 0.0, (
-            f"Detection rate is 0% — detector catches NONE of the real-world "
-            f"published injections. Something is fundamentally broken."
+            "Detection rate is 0% — detector catches NONE of the real-world "
+            "published injections. Something is fundamentally broken."
         )
 
     def test_false_positive_rate(self, detector: EmbeddingSimilarityDetector) -> None:
@@ -182,7 +182,7 @@ class TestDetectionRate:
         }
 
         print(f"\n{'='*70}")
-        print(f"DETECTION RATE BY SOURCE")
+        print("DETECTION RATE BY SOURCE")
         print(f"{'='*70}")
 
         for name, prefix in source_prefixes.items():
@@ -193,9 +193,7 @@ class TestDetectionRate:
                 print(f"  {name}: No injection examples found")
                 continue
 
-            detected = sum(
-                1 for t, _, _, _ in injections if detector.scan(t)
-            )
+            detected = sum(1 for t, _, _, _ in injections if detector.scan(t))
             rate = detected / len(injections)
             print(f"  {name}: {detected}/{len(injections)} = {rate:.2%}")
 
@@ -204,7 +202,7 @@ class TestDetectionRate:
         categories = set(cat for _, _, _, cat in PUBLISHED_INJECTIONS)
 
         print(f"\n{'='*70}")
-        print(f"DETECTION RATE BY CATEGORY")
+        print("DETECTION RATE BY CATEGORY")
         print(f"{'='*70}")
 
         for category in sorted(categories):
@@ -214,9 +212,7 @@ class TestDetectionRate:
             if not injections:
                 continue
 
-            detected = sum(
-                1 for t, _, _, _ in injections if detector.scan(t)
-            )
+            detected = sum(1 for t, _, _, _ in injections if detector.scan(t))
             rate = detected / len(injections)
             print(f"  {category}: {detected}/{len(injections)} = {rate:.2%}")
 
@@ -233,8 +229,12 @@ class TestDetectionRate:
 
         total = len(PUBLISHED_INJECTIONS)
         print(f"\n{'='*70}")
-        print(f"SEVERITY DISTRIBUTION")
+        print("SEVERITY DISTRIBUTION")
         print(f"{'='*70}")
         print(f"  HIGH:         {severity_counts['HIGH']:>3} ({severity_counts['HIGH']/total:.1%})")
-        print(f"  MEDIUM:       {severity_counts['MEDIUM']:>3} ({severity_counts['MEDIUM']/total:.1%})")
-        print(f"  NOT_DETECTED: {severity_counts['NOT_DETECTED']:>3} ({severity_counts['NOT_DETECTED']/total:.1%})")
+        print(
+            f"  MEDIUM:       {severity_counts['MEDIUM']:>3} ({severity_counts['MEDIUM']/total:.1%})"
+        )
+        print(
+            f"  NOT_DETECTED: {severity_counts['NOT_DETECTED']:>3} ({severity_counts['NOT_DETECTED']/total:.1%})"
+        )
