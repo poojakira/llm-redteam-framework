@@ -74,7 +74,7 @@ jobs:
       - name: Install dependencies
         run: |
           set -o pipefail
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools>=83.0.0
           pip install pytest pytest-cov
           pip install -e ./attack-v19-core
           python attack-v19-core/scripts/download_attack_data.py
