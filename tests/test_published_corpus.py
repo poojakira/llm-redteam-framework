@@ -54,27 +54,27 @@ class TestCorpusIntegrity:
 
     def test_all_injections_labeled_1(self) -> None:
         """All injection entries must have label=1."""
-        for text, label, source, category in PUBLISHED_INJECTIONS:
+        for text, label, _source, _category in PUBLISHED_INJECTIONS:
             assert label == 1, f"Injection has wrong label: {text[:60]}..."
 
     def test_all_benign_labeled_0(self) -> None:
         """All benign entries must have label=0."""
-        for text, label, source, category in PUBLISHED_BENIGN:
+        for text, label, _source, _category in PUBLISHED_BENIGN:
             assert label == 0, f"Benign has wrong label: {text[:60]}..."
 
     def test_all_entries_have_source(self) -> None:
         """Every entry must have a non-empty source citation."""
-        for text, label, source, category in PUBLISHED_CORPUS:
+        for text, _label, source, _category in PUBLISHED_CORPUS:
             assert source.strip(), f"Missing source for: {text[:60]}..."
 
     def test_all_entries_have_category(self) -> None:
         """Every entry must have a non-empty category."""
-        for text, label, source, category in PUBLISHED_CORPUS:
+        for text, _label, _source, category in PUBLISHED_CORPUS:
             assert category.strip(), f"Missing category for: {text[:60]}..."
 
     def test_no_empty_texts(self) -> None:
         """No entry should have empty text."""
-        for text, label, source, category in PUBLISHED_CORPUS:
+        for text, _label, source, _category in PUBLISHED_CORPUS:
             assert text.strip(), f"Empty text with source={source}"
 
     def test_no_exact_duplicates(self) -> None:
@@ -110,7 +110,7 @@ class TestDetectionRate:
         detected = 0
         missed = []
 
-        for text, label, source, category in PUBLISHED_INJECTIONS:
+        for text, _label, source, category in PUBLISHED_INJECTIONS:
             findings = detector.scan(text)
             if findings:
                 detected += 1
@@ -149,7 +149,7 @@ class TestDetectionRate:
         false_positives = 0
         fp_examples = []
 
-        for text, label, source, category in PUBLISHED_BENIGN:
+        for text, _label, _source, _category in PUBLISHED_BENIGN:
             findings = detector.scan(text)
             if findings:
                 false_positives += 1
