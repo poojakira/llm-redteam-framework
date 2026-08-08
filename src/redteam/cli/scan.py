@@ -36,8 +36,8 @@ from typing import Any
 _SRC_DIR = Path(__file__).resolve().parents[3]  # …/src/
 sys.path.insert(0, str(_SRC_DIR))
 
-from redteam.detectors import EmbeddingSimilarityDetector, PIILeakageDetector
-from redteam.output import findings_to_sarif, sarif_has_high_or_critical
+from redteam.detectors import EmbeddingSimilarityDetector, PIILeakageDetector  # noqa: E402
+from redteam.output import findings_to_sarif, sarif_has_high_or_critical  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Helpers
