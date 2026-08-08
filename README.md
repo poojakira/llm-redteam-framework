@@ -463,7 +463,7 @@ src/redteam/
   generators/     — Template-based prompt generators (6 attack categories)
   detector/       — TF-IDF + LogReg classifier
   eval/           — Evaluation harness, SARIF formatter
-  data/           — Real-world injection corpus (academic sources)
+  data/           — Real-world injection corpus (published research)
 tests/            — 34 tests including pinned metric assertions
 .github/workflows/llm-security-scan.yml  — CI integration
 llm-security-config.yaml                 — Secure defaults config
