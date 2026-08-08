@@ -282,20 +282,90 @@ Upload to GitHub Code Scanning:
 
 ---
 
-## Install
+## Installation
+
+### Prerequisites
+- Python 3.10 or newer
+- pip (comes with Python)
+- numpy, scikit-learn (installed automatically)
+- Optional: sentence-transformers (for embedding-based detection)
+
+### Install from PyPI
+
+```powershell
+# Windows PowerShell
+py -m pip install llm-redteam-framework
+```
 
 ```bash
+# Linux / Mac
 pip install llm-redteam-framework
 ```
 
-From source:
+### Install from source (with dev dependencies)
+
+```powershell
+# Windows PowerShell
+git clone https://github.com/poojakira/llm-redteam-framework.git
+cd llm-redteam-framework
+py -m pip install -e ".[dev]"
+```
+
 ```bash
-git clone https://github.com/poojakira/llm-redteam-framework
+# Linux / Mac
+git clone https://github.com/poojakira/llm-redteam-framework.git
 cd llm-redteam-framework
 pip install -e ".[dev]"
 ```
 
-Requires Python 3.10+.
+### Verify installation
+
+```powershell
+# Windows PowerShell
+py -c "from redteam.detector import RedTeamDetector; from redteam.generators import build_corpus; print('OK')"
+```
+
+```bash
+# Linux / Mac
+python -c "from redteam.detector import RedTeamDetector; from redteam.generators import build_corpus; print('OK')"
+```
+
+### Verify CLI tool
+
+```powershell
+# Windows PowerShell
+redteam-eval --help
+```
+
+```bash
+# Linux / Mac
+redteam-eval --help
+```
+
+### Run tests
+
+```powershell
+# Windows PowerShell
+py -m pytest tests/ -v --cov=redteam --cov-fail-under=83
+# Expected: 34 passed, coverage >= 83%
+```
+
+```bash
+# Linux / Mac
+pytest tests/ -v --cov=redteam --cov-fail-under=83
+# Expected: 34 passed, coverage >= 83%
+```
+
+### Common issues
+
+| Problem | Fix |
+|---------|-----|
+| `py` not recognized (Windows) | Use `python` instead, or install Python from python.org and ensure it's on PATH |
+| `redteam-eval` command not found | Ensure the package was installed (not just cloned). Re-run `py -m pip install -e .` |
+| `ModuleNotFoundError: No module named 'sklearn'` | Run `py -m pip install scikit-learn>=1.1` |
+| Permission denied on install | Use a virtual environment: `py -m venv .venv && .venv\Scripts\activate` |
+| Embedding detectors fail | Install optional embeddings extra: `py -m pip install -e ".[embeddings]"` |
+| Tests fail with import errors | Ensure you're running from the repo root with `pip install -e ".[dev]"` |
 
 ---
 
