@@ -30,12 +30,13 @@ B. Injection pattern scanning
 
 OWASP LLM Top 10: LLM07 — Insecure Plugin Design / RAG Poisoning
 """
+
 from __future__ import annotations
 
 import hashlib
 import re
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 # Patterns that suggest adversarial instruction injection in a RAG document
@@ -55,6 +56,7 @@ _INJECTION_PATTERNS: list[re.Pattern[str]] = [
 @dataclass
 class _TrackedDocument:
     """A document with an embedded canary token."""
+
     original: str
     canary: str
     instrumented: str  # original + canary marker
@@ -93,11 +95,13 @@ class RAGPoisoningDetector:
             instrumented = f"{doc}\n<!-- {canary} -->"
             doc_fingerprint = hashlib.sha256(doc.encode()).hexdigest()[:16]
             self._canary_registry[canary] = doc_fingerprint
-            tracked.append(_TrackedDocument(
-                original=doc,
-                canary=canary,
-                instrumented=instrumented,
-            ))
+            tracked.append(
+                _TrackedDocument(
+                    original=doc,
+                    canary=canary,
+                    instrumented=instrumented,
+                )
+            )
         return tracked
 
     def check_response_for_canaries(self, response: str) -> list[str]:
@@ -149,27 +153,31 @@ class RAGPoisoningDetector:
         for idx, doc in enumerate(context_docs):
             injection_matches = self.scan_document_for_injections(doc)
             if injection_matches:
-                findings.append({
-                    "rule_id": "LLM07-RAGPoisoning",
-                    "severity": "HIGH",
-                    "message": (
-                        f"Context document {idx} contains prompt injection pattern. "
-                        f"Matches: {'; '.join(injection_matches[:3])}"
-                    ),
-                })
+                findings.append(
+                    {
+                        "rule_id": "LLM07-RAGPoisoning",
+                        "severity": "HIGH",
+                        "message": (
+                            f"Context document {idx} contains prompt injection pattern. "
+                            f"Matches: {'; '.join(injection_matches[:3])}"
+                        ),
+                    }
+                )
 
         # Check if any registered canaries appear in the LLM response
         if llm_response:
             leaked = self.check_response_for_canaries(llm_response)
             for canary in leaked:
                 doc_fp = self._canary_registry.get(canary, "unknown")
-                findings.append({
-                    "rule_id": "LLM07-CanaryLeakage",
-                    "severity": "MEDIUM",
-                    "message": (
-                        f"Canary token {canary!r} from document {doc_fp} "
-                        "appeared in LLM response — confirms RAG retrieval path."
-                    ),
-                })
+                findings.append(
+                    {
+                        "rule_id": "LLM07-CanaryLeakage",
+                        "severity": "MEDIUM",
+                        "message": (
+                            f"Canary token {canary!r} from document {doc_fp} "
+                            "appeared in LLM response — confirms RAG retrieval path."
+                        ),
+                    }
+                )
 
         return findings

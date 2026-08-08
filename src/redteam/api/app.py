@@ -13,6 +13,7 @@ Usage
 -----
     uvicorn src.redteam.api.app:app --host 0.0.0.0 --port 8000
 """
+
 from __future__ import annotations
 
 import logging
@@ -29,9 +30,9 @@ from prometheus_client import (
 )
 from pydantic import BaseModel, Field
 
+from redteam.detectors.embedding_similarity import EmbeddingSimilarityDetector
 from redteam.detectors.pii_leakage import PIILeakageDetector
 from redteam.detectors.rag_poisoning import RAGPoisoningDetector
-from redteam.detectors.embedding_similarity import EmbeddingSimilarityDetector
 from redteam.output.sarif import findings_to_sarif
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSON
     """
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     return JSONResponse(status_code=500, content={"error": "internal error"})
+
 
 # ── Prometheus metrics ─────────────────────────────────────────────────────────
 SCAN_REQUESTS = Counter("scan_requests_total", "Total /scan requests", ["status"])
@@ -81,7 +83,7 @@ class ScanRequest(BaseModel):
 
 class Finding(BaseModel):
     rule_id: str
-    severity: str          # CRITICAL | HIGH | MEDIUM | LOW | NOTE
+    severity: str  # CRITICAL | HIGH | MEDIUM | LOW | NOTE
     message: str
     detector: str
     owasp_llm_id: str = ""
@@ -91,7 +93,7 @@ class ScanResponse(BaseModel):
     scan_id: str
     findings: list[Finding]
     sarif: dict[str, Any]
-    blocked: bool          # True if any HIGH or CRITICAL finding present
+    blocked: bool  # True if any HIGH or CRITICAL finding present
     duration_ms: float
 
 
