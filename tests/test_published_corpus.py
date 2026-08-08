@@ -187,7 +187,7 @@ class TestDetectionRate:
 
         for name, prefix in source_prefixes.items():
             entries = get_corpus_by_source(prefix)
-            injections = [(t, l, s, c) for t, l, s, c in entries if l == 1]
+            injections = [(t, lb, s, c) for t, lb, s, c in entries if lb == 1]
 
             if not injections:
                 print(f"  {name}: No injection examples found")
@@ -207,7 +207,7 @@ class TestDetectionRate:
 
         for category in sorted(categories):
             entries = get_corpus_by_category(category)
-            injections = [(t, l, s, c) for t, l, s, c in entries if l == 1]
+            injections = [(t, lb, s, c) for t, lb, s, c in entries if lb == 1]
 
             if not injections:
                 continue
