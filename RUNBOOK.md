@@ -134,7 +134,7 @@ Evaluation:
 pytest tests/ -v --cov=redteam --cov-fail-under=83
 ```
 
-Expected: 34 tests passing, 94% coverage.
+Expected: 74 tests passing (56% line coverage; the endpoint scanner and corpus modules add breadth over depth).
 
 **Full verification (lint + test + build + security):**
 ```powershell
