@@ -120,14 +120,14 @@ class TestDetectionRate:
         total = len(PUBLISHED_INJECTIONS)
         detection_rate = detected / total
 
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("EXTERNAL BENCHMARK: EmbeddingSimilarityDetector vs Published Corpus")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         print(f"Total injections tested: {total}")
         print(f"Detected: {detected}")
         print(f"Missed: {total - detected}")
         print(f"Detection rate (recall): {detection_rate:.2%}")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
 
         if missed:
             print(f"\nMissed injections ({len(missed)}):")
@@ -181,9 +181,9 @@ class TestDetectionRate:
             "OWASP": "OWASP",
         }
 
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("DETECTION RATE BY SOURCE")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
 
         for name, prefix in source_prefixes.items():
             entries = get_corpus_by_source(prefix)
@@ -201,9 +201,9 @@ class TestDetectionRate:
         """Break down detection rate by attack category."""
         categories = set(cat for _, _, _, cat in PUBLISHED_INJECTIONS)
 
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("DETECTION RATE BY CATEGORY")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
 
         for category in sorted(categories):
             entries = get_corpus_by_category(category)
@@ -228,13 +228,15 @@ class TestDetectionRate:
                 severity_counts["NOT_DETECTED"] += 1
 
         total = len(PUBLISHED_INJECTIONS)
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("SEVERITY DISTRIBUTION")
-        print(f"{'='*70}")
-        print(f"  HIGH:         {severity_counts['HIGH']:>3} ({severity_counts['HIGH']/total:.1%})")
+        print(f"{'=' * 70}")
         print(
-            f"  MEDIUM:       {severity_counts['MEDIUM']:>3} ({severity_counts['MEDIUM']/total:.1%})"
+            f"  HIGH:         {severity_counts['HIGH']:>3} ({severity_counts['HIGH'] / total:.1%})"
         )
         print(
-            f"  NOT_DETECTED: {severity_counts['NOT_DETECTED']:>3} ({severity_counts['NOT_DETECTED']/total:.1%})"
+            f"  MEDIUM:       {severity_counts['MEDIUM']:>3} ({severity_counts['MEDIUM'] / total:.1%})"
+        )
+        print(
+            f"  NOT_DETECTED: {severity_counts['NOT_DETECTED']:>3} ({severity_counts['NOT_DETECTED'] / total:.1%})"
         )

@@ -230,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     high_crit = [f for f in findings if f.get("severity") in ("HIGH", "CRITICAL")]
 
     print(
-        f"[INFO] Scan complete. {total} finding(s), " f"{len(high_crit)} HIGH/CRITICAL.",
+        f"[INFO] Scan complete. {total} finding(s), {len(high_crit)} HIGH/CRITICAL.",
         file=sys.stderr,
     )
 

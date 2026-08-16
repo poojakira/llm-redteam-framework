@@ -36,10 +36,9 @@ jobs:
 
       - name: Run LLM security scan (SARIF output)
         run: |
-          redteam-eval \
-            --split-mode grouped \
-            --format sarif \
-            --output results.sarif
+          python -m redteam.cli.scan \
+            --input tests/fixtures/scan_corpus.jsonl \
+            --output-sarif results.sarif
         env:
           # This workflow is for continuous VISIBILITY (SARIF -> Security tab),
           # not a build gate. The evaluation is SUPPOSED to detect injections in

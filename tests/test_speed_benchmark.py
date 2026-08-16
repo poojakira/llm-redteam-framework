@@ -72,9 +72,9 @@ def test_predict_100_prompts_under_5s(trained_detector, hundred_prompts):
     elapsed = time.perf_counter() - start
 
     assert len(preds) == _N_PROMPTS, f"Expected {_N_PROMPTS} predictions, got {len(preds)}"
-    assert (
-        elapsed < _TIMEOUT_PREDICT_ONLY_S
-    ), f"Predict-only took {elapsed:.3f}s, limit is {_TIMEOUT_PREDICT_ONLY_S}s"
+    assert elapsed < _TIMEOUT_PREDICT_ONLY_S, (
+        f"Predict-only took {elapsed:.3f}s, limit is {_TIMEOUT_PREDICT_ONLY_S}s"
+    )
     print(f"\n[TIMING] predict 100 prompts: {elapsed * 1000:.1f}ms")
 
 
@@ -103,9 +103,9 @@ def test_full_pipeline_100_prompts_under_45s():
     elapsed = time.perf_counter() - start
 
     assert len(preds) == _N_PROMPTS
-    assert (
-        elapsed < _TIMEOUT_FULL_PIPELINE_S
-    ), f"Full pipeline took {elapsed:.2f}s, limit is {_TIMEOUT_FULL_PIPELINE_S}s"
+    assert elapsed < _TIMEOUT_FULL_PIPELINE_S, (
+        f"Full pipeline took {elapsed:.2f}s, limit is {_TIMEOUT_FULL_PIPELINE_S}s"
+    )
     print(f"\n[TIMING] full pipeline (corpus+train+predict 100): {elapsed:.3f}s")
 
 

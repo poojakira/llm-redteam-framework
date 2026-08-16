@@ -1,5 +1,4 @@
 import json
-from typing import List
 
 from attack_core.models import ATTACKMapping
 
@@ -7,7 +6,7 @@ from attack_core.models import ATTACKMapping
 class NavigatorLayerReporter:
     """Outputs ATT&CK Navigator layer JSON v4.5"""
 
-    def generate(self, repo_name: str, mappings: List[ATTACKMapping]) -> str:
+    def generate(self, repo_name: str, mappings: list[ATTACKMapping]) -> str:
         techniques = []
         seen = set()
         for m in mappings:
