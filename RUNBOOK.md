@@ -64,28 +64,71 @@ make install
 
 ## Step 4: Run
 
+### CLI: Run the held-out evaluation harness
+
+The `redteam-eval` console script (installed via `pip install -e ".[dev]"`) generates
+an adversarial corpus, trains the TF-IDF detector on a train split, and evaluates on
+a held-out test split — all in one command.
+
 **Windows (PowerShell):**
 ```powershell
-# Generate adversarial prompts from templates
-.\.venv\Scripts\python.exe -m redteam.generate --output prompts.json
+# Run evaluation (grouped split, default settings)
+.\.venv\Scripts\redteam-eval.exe
 
-# Train the TF-IDF + Logistic Regression classifier
-.\.venv\Scripts\python.exe -m redteam.train --data prompts.json --output model.pkl
+# Specify split mode and write JSON report
+.\.venv\Scripts\redteam-eval.exe --split-mode grouped --test-size 0.3 --output results.json
 
-# Evaluate the detector
-.\.venv\Scripts\python.exe -m redteam.evaluate --model model.pkl --test-data prompts.json
+# Random split (in-distribution, optimistic)
+.\.venv\Scripts\redteam-eval.exe --split-mode random --output results_random.json
 ```
 
 **Linux/macOS:**
 ```bash
-python -m redteam.generate --output prompts.json
-python -m redteam.train --data prompts.json --output model.pkl
-python -m redteam.evaluate --model model.pkl --test-data prompts.json
+# Run evaluation (grouped split, default settings)
+redteam-eval
+
+# Specify split mode and write JSON report
+redteam-eval --split-mode grouped --test-size 0.3 --output results.json
+
+# Random split (in-distribution, optimistic)
+redteam-eval --split-mode random --output results_random.json
 ```
 
-**Or use Makefile:**
+### CLI: Run the scan tool
+
+**Windows (PowerShell):**
 ```powershell
-make run       # Run default pipeline (generate → train → evaluate)
+# Scan a JSONL corpus for prompt injections (outputs SARIF)
+.\.venv\Scripts\python.exe -m redteam.cli.scan --input corpus.jsonl --output-sarif results/scan.sarif
+
+# Fail with exit code 1 on HIGH/CRITICAL findings (useful for CI)
+.\.venv\Scripts\python.exe -m redteam.cli.scan --input corpus.jsonl --output-sarif results/scan.sarif --fail-on-high
+```
+
+**Linux/macOS:**
+```bash
+python -m redteam.cli.scan --input corpus.jsonl --output-sarif results/scan.sarif
+python -m redteam.cli.scan --input corpus.jsonl --output-sarif results/scan.sarif --fail-on-high
+```
+
+### FastAPI: Run the detection API server
+
+**Windows (PowerShell):**
+```powershell
+.\.venv\Scripts\uvicorn.exe src.redteam.api.app:app --host 127.0.0.1 --port 8000
+# Then: POST http://localhost:8000/scan, GET http://localhost:8000/health
+```
+
+**Linux/macOS:**
+```bash
+uvicorn src.redteam.api.app:app --host 0.0.0.0 --port 8000
+# Then: POST http://localhost:8000/scan, GET http://localhost:8000/health
+```
+
+### Makefile shortcuts
+
+```powershell
+make run       # Run default pipeline (eval harness)
 make dashboard # Serve dashboard at localhost:8080
 ```
 
@@ -93,32 +136,28 @@ make dashboard # Serve dashboard at localhost:8080
 
 ## Step 5: Expected Output
 
-Prompt generation:
-```
-[Generate] Templates loaded: 45
-[Generate] Prompts generated: 2000 (1000 benign, 1000 adversarial)
-[Generate] Written to: prompts.json
-```
-
-Training:
-```
-[Train] Features: TF-IDF (max_features=5000)
-[Train] Classifier: LogisticRegression(C=1.0)
-[Train] Training samples: 1600
-[Train] Model saved to: model.pkl
-```
-
-Evaluation:
-```
-[Evaluate] Test samples: 400
-[Evaluate] Accuracy: 0.83
-[Evaluate] F1 (in-distribution): 0.85
-[Evaluate] F1 (out-of-distribution): 0.70
-[Evaluate] Precision: 0.81
-[Evaluate] Recall: 0.87
+Running `redteam-eval` produces a JSON report to stdout:
+```json
+{
+  "split_mode": "grouped",
+  "precision": 0.81,
+  "recall": 0.87,
+  "f1": 0.84,
+  "false_positive_rate": 0.08,
+  "accuracy": 0.83,
+  "n_total": 2000,
+  "n_train": 1400,
+  "n_test": 600,
+  "n_test_adversarial": 300,
+  "n_test_benign": 300,
+  "n_test_templates": 12,
+  "false_positives": 24,
+  "false_negatives": 39,
+  "seed": 42
+}
 ```
 
-> **Note:** F1=0.70 OOD is expected for TF-IDF approach. Use LLM Guard for production.
+> **Note:** F1 ~0.70 OOD (grouped split) is expected for the TF-IDF approach. Use LLM Guard for production.
 
 ---
 
