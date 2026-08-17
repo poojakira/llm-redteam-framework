@@ -91,7 +91,7 @@ jobs:
             --cov=redteam \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
-            --cov-fail-under=50
+            --cov-fail-under=83
 
       - name: Upload coverage report
         if: always()
