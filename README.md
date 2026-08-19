@@ -12,12 +12,12 @@ Generates adversarial prompts from 6 attack categories, trains a detector, and e
 
 Attack categories: direct_override, role_switch, context_escape, indirect_embed, obfuscation, multi_step.
 
-I built this as a CI-integrated first-pass gate — not a complete defense. The TF-IDF approach catches known patterns reliably but cannot reason about semantics. For production injection detection, use something with transformer embeddings.
+I built this as a CI-integrated first-pass gate  -  not a complete defense. The TF-IDF approach catches known patterns reliably but cannot reason about semantics. For production injection detection, use something with transformer embeddings.
 
 ## Honest Scope
 
 - The F1=0.93 number is misleading (train/test share template categories). The real number is **0.70** on novel attacks.
-- Trained on self-generated data — cannot detect strategies it hasn't seen templated versions of.
+- Trained on self-generated data  -  cannot detect strategies it hasn't seen templated versions of.
 - Does not send prompts to an actual LLM despite the "red team" name.
 - Useful as: a first-pass CI gate, a reference implementation, a template for FastAPI + SARIF services.
 
