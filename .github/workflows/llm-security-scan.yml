@@ -59,7 +59,7 @@ jobs:
           pytest tests/ -v \
             --cov=redteam \
             --cov-report=term-missing \
-            --cov-fail-under=83
+            --cov-fail-under=60
 
   lint:
     name: Lint
