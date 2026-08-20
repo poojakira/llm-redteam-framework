@@ -9,3 +9,5 @@ dist/
 report.json
 .venv/
 .coverage
+
+.venv-test/
