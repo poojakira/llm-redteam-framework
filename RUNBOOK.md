@@ -19,45 +19,36 @@ export OPENAI_API_KEY=sk-...
 export ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-## Generate Attacks
+## Run the Evaluation
+
+The `redteam-eval` command generates the adversarial + benign corpus, trains the
+offline detector, and scores it on a held-out split in one pass.
 
 ```bash
-# Generate adversarial prompts using the evaluation harness
-redteam-eval generate --count 50 --output attacks.json
+# Grouped split (default) — prevents template leakage between train/test
+redteam-eval --output eval.json
 
-# Specific attack categories
-redteam-eval generate --category data-exfil --count 20 --output attacks.json
+# Random split with a fixed seed for reproducibility
+redteam-eval --split-mode random --test-size 0.3 --seed 42 --output eval.json
+
+# Vary the corpus generation seed
+redteam-eval --corpus-seed 7 --output eval.json
 ```
 
-## Run Detector
-
-```bash
-# Batch detection against generated attacks
-redteam-eval detect --input attacks.json --output detections.json
-```
-
-## Evaluate Results
-
-```bash
-# Full evaluation pipeline
-redteam-eval --attacks attacks.json --output eval.json
-
-# With SARIF output
-redteam-eval --attacks attacks.json --format sarif --output results.sarif
-```
+Output JSON includes `precision`, `recall`, `f1`, `n_test`, `false_positives`,
+and `false_negatives`.
 
 ## Run Tests
 
 ```bash
-pytest tests/ -v --cov=src --cov-report=term-missing
+pytest tests/ -v
 ```
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `RateLimitError` | Too many API calls | Set `--rate-limit 10` (req/min) or use `--delay` |
-| Detector returns 500 | Model not loaded | Check `GET /health`, verify model path in config |
-| Low bypass rate | Weak attack strategies | Try `--strategy ensemble` or increase `--mutations` |
-| SARIF validation fails | Schema mismatch | Update tool: `pip install -U .`, check SARIF 2.1.0 spec |
-| OOM on local models | Model too large for GPU | Use `--device cpu` or reduce `--batch-size` |
+| `command not found: redteam-eval` | Package not installed | Run `pip install -e ".[dev]"` |
+| Import errors | Wrong working directory | Run from repo root, ensure venv active |
+| F1 lower than expected | Random split leaks templates | Use default `--split-mode grouped` |
+| Non-deterministic results | Unset seed | Pass `--seed` and `--corpus-seed` |
