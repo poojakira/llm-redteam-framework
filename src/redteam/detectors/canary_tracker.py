@@ -11,7 +11,7 @@ You have a set of proprietary documents in your RAG corpus. You want to know:
   (b) whether the LLM is leaking verbatim content from those documents.
 
 This tracker assigns a UUID-based canary to every document at index time.
-When an LLM response is checked, any canary that appears has leaked  -- 
+When an LLM response is checked, any canary that appears has leaked  --
 confirming both retrieval and verbatim reproduction.
 
 OWASP LLM Top 10: LLM07 (RAG Poisoning), LLM06 (Sensitive Information Disclosure)
