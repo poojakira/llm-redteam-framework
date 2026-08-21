@@ -30,7 +30,7 @@ _SEVERITY_TO_LEVEL: dict[str, str] = {
     "NOTE": "none",
 }
 
-# OWASP LLM Top 10 rule definitions — one rule per detector category
+# OWASP LLM Top 10 rule definitions  --  one rule per detector category
 _RULES: list[dict[str, Any]] = [
     {
         "id": "LLM01-PromptInjection",

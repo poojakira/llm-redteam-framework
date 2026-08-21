@@ -19,7 +19,7 @@ A. Canary token injection
    The scanner embeds a unique UUID canary inside every document before it is
    indexed. If that canary token later appears in the LLM's response, it
    confirms the document was retrieved AND that the LLM reproduced verbatim
-   content from it — a signal that the context influenced output as expected
+   content from it  --  a signal that the context influenced output as expected
    (benign) or that a poisoned document leaked its canary (malicious if
    accompanied by a jailbreak pattern).
 
@@ -28,7 +28,7 @@ B. Injection pattern scanning
    regex and a small keyword list. Any document containing an injection
    instruction raises a HIGH finding.
 
-OWASP LLM Top 10: LLM07 — Insecure Plugin Design / RAG Poisoning
+OWASP LLM Top 10: LLM07  --  Insecure Plugin Design / RAG Poisoning
 """
 
 from __future__ import annotations
@@ -175,7 +175,7 @@ class RAGPoisoningDetector:
                         "severity": "MEDIUM",
                         "message": (
                             f"Canary token {canary!r} from document {doc_fp} "
-                            "appeared in LLM response — confirms RAG retrieval path."
+                            "appeared in LLM response  --  confirms RAG retrieval path."
                         ),
                     }
                 )

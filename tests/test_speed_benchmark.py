@@ -79,7 +79,7 @@ def test_predict_100_prompts_under_5s(trained_detector, hundred_prompts):
 
 
 def test_full_pipeline_100_prompts_under_45s():
-    """Full pipeline — build corpus, train detector, predict 100 prompts — must
+    """Full pipeline  --  build corpus, train detector, predict 100 prompts  --  must
     finish in under 45 seconds on any supported platform.
 
     Measured on a standard laptop: ~0.95s. The 45s ceiling matches the claim

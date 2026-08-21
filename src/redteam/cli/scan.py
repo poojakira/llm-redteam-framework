@@ -8,7 +8,7 @@ Usage
     python -m redteam.cli.scan --input corpus.jsonl --output-sarif results/scan.sarif
     python -m redteam.cli.scan --input corpus.jsonl --output-sarif results/scan.sarif --fail-on-high
 
-Input format (JSONL — one JSON object per line)::
+Input format (JSONL  --  one JSON object per line)::
 
     {"prompt": "...", "response": "...", "context_docs": [...]}
 
@@ -239,7 +239,7 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(f, default=str))
 
     if is_demo:
-        # Demo mode always exits 0 — we never want to block CI on a demo
+        # Demo mode always exits 0  --  we never want to block CI on a demo
         return 0
 
     if args.fail_on_high and sarif_has_high_or_critical(sarif_doc):

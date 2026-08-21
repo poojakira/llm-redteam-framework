@@ -51,7 +51,7 @@ jobs:
         run: |
           echo "::warning::LLM security scan reported findings in the test corpus."
           echo "::warning::The corpus (tests/fixtures/scan_corpus.jsonl) intentionally"
-          echo "::warning::contains injection samples, so findings here are expected —"
+          echo "::warning::contains injection samples, so findings here are expected  -- "
           echo "::warning::they confirm the detector works. See the Security tab for detail."
 
   codeql:

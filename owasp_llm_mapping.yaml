@@ -28,7 +28,7 @@ mappings:
         name: Command and Scripting Interpreter
         note: LLM used as interpreter to execute attacker-injected instructions
       - id: T1685
-        name: Adversarial ML — Prompt Injection
+        name: Adversarial ML  --  Prompt Injection
         note: MITRE ATT&CK v19 ML-specific technique
 
   - owasp_id: LLM02
@@ -103,9 +103,9 @@ mappings:
           Per-document UUID canary embedding; cross-session fired-canary tracking
     attack_techniques:
       - id: T1195.001
-        name: Supply Chain Compromise — third-party data poisoning
+        name: Supply Chain Compromise  --  third-party data poisoning
       - id: T1685
-        name: Adversarial ML — Training Data Poisoning
+        name: Adversarial ML  --  Training Data Poisoning
 
   - owasp_id: LLM08
     title: Excessive Agency
@@ -118,7 +118,7 @@ mappings:
       a requested tool call is within the declared permission boundary.
     attack_techniques:
       - id: T1078
-        name: Valid Accounts — misuse of legitimate LLM tool-call credentials
+        name: Valid Accounts  --  misuse of legitimate LLM tool-call credentials
 
   - owasp_id: LLM09
     title: Overreliance
@@ -139,4 +139,4 @@ mappings:
       serving layer. Not implemented in this static scanner.
     attack_techniques:
       - id: T1682
-        name: ML Model Access — extraction via black-box queries
+        name: ML Model Access  --  extraction via black-box queries

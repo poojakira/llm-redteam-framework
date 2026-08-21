@@ -169,7 +169,7 @@ class TestInjectionBenchF1:
         )
 
     def test_no_false_negatives_on_direct_overrides(self, trained_detector):
-        """Direct-override injections are the easiest category — the detector
+        """Direct-override injections are the easiest category  --  the detector
         must catch all of them (zero false negatives)."""
         direct_overrides = [
             (t, lbl)

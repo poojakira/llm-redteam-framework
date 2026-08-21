@@ -5,7 +5,7 @@
 | Version | Supported |
 |---------|-----------|
 | Latest (main) | ✅ |
-| Older releases | ❌ — please upgrade |
+| Older releases | ❌  --  please upgrade |
 
 ## Reporting a Vulnerability
 
@@ -19,7 +19,7 @@ Include:
 - Potential impact (what an attacker could achieve)
 - Any suggested mitigations
 
-**Expected response time:** Acknowledgement within 72 hours. Patch timeline depends on severity — CRITICAL issues are prioritized within 7 days.
+**Expected response time:** Acknowledgement within 72 hours. Patch timeline depends on severity  --  CRITICAL issues are prioritized within 7 days.
 
 This project follows **coordinated disclosure**: please allow reasonable time for a fix before public disclosure. We will credit reporters in the CHANGELOG unless you prefer to remain anonymous.
 
@@ -35,7 +35,7 @@ Out of scope:
 - Findings in transitive dependencies not exploitable via this tool's attack surface
 - Performance issues that are not exploitable
 - Issues in the underlying scikit-learn/numpy libraries (report to those projects directly)
-- False positive / false negative rates — these are limitations, not vulnerabilities; open a regular issue
+- False positive / false negative rates  --  these are limitations, not vulnerabilities; open a regular issue
 
 ## Security Assumptions
 

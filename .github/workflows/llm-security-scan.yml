@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: ["main"]
   schedule:
-    # Daily scan at 06:00 UTC — continuous assurance, not point-in-time
+    # Daily scan at 06:00 UTC  --  continuous assurance, not point-in-time
     - cron: "0 6 * * *"
 
 permissions:
@@ -42,12 +42,12 @@ jobs:
         env:
           # This workflow is for continuous VISIBILITY (SARIF -> Security tab),
           # not a build gate. The evaluation is SUPPOSED to detect injections in
-          # its corpus — that's the tool working, not a vulnerability. So we do
+          # its corpus  --  that's the tool working, not a vulnerability. So we do
           # not fail the build on expected eval findings.
           LLM_SECURITY_FAIL_ON: never
 
       - name: Upload SARIF to GitHub Code Scanning
-        # Runs even if the scan step fails — so findings appear in the Security tab
+        # Runs even if the scan step fails  --  so findings appear in the Security tab
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:

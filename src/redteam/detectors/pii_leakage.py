@@ -17,7 +17,7 @@ If spaCy is installed with the ``en_core_web_sm`` model, named entities of
 type PERSON, ORG, GPE are flagged as PII. The detector degrades gracefully
 when spaCy is unavailable (regex-only mode).
 
-OWASP LLM Top 10: LLM06 — Sensitive Information Disclosure
+OWASP LLM Top 10: LLM06  --  Sensitive Information Disclosure
 """
 
 from __future__ import annotations

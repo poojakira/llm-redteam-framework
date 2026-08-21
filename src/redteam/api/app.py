@@ -5,9 +5,9 @@ FastAPI service for the LLM red-team framework.
 
 Endpoints
 ---------
-POST /scan   — run all detectors against a prompt/response pair
-GET  /health — liveness check
-GET  /metrics — Prometheus metrics (internal)
+POST /scan    --  run all detectors against a prompt/response pair
+GET  /health  --  liveness check
+GET  /metrics  --  Prometheus metrics (internal)
 
 Usage
 -----

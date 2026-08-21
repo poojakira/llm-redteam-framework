@@ -1,6 +1,6 @@
 """Benchmark the EmbeddingSimilarityDetector against REAL published injection corpus.
 
-This is the first external benchmark for the detector — using actual published
+This is the first external benchmark for the detector  --  using actual published
 prompt injections from academic papers and security research, not synthetic data.
 
 Sources tested:
@@ -135,12 +135,12 @@ class TestDetectionRate:
                 print(f"  [{cat}] ({source}): {text}...")
 
         # This is primarily an informational benchmark. The TF-IDF sparse mode
-        # has limited semantic understanding — this benchmark documents that gap
+        # has limited semantic understanding  --  this benchmark documents that gap
         # honestly. The key value is tracking improvements over time.
         # Threshold is intentionally low: we're documenting baseline performance,
         # not asserting production readiness.
         assert detection_rate > 0.0, (
-            "Detection rate is 0% — detector catches NONE of the real-world "
+            "Detection rate is 0%  --  detector catches NONE of the real-world "
             "published injections. Something is fundamentally broken."
         )
 

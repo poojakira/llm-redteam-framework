@@ -1,4 +1,4 @@
-# RUNBOOK — LLM Red Team Framework
+# RUNBOOK  --  LLM Red Team Framework
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ The `redteam-eval` command generates the adversarial + benign corpus, trains the
 offline detector, and scores it on a held-out split in one pass.
 
 ```bash
-# Grouped split (default) — prevents template leakage between train/test
+# Grouped split (default)  --  prevents template leakage between train/test
 redteam-eval --output eval.json
 
 # Random split with a fixed seed for reproducibility

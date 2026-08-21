@@ -2,7 +2,7 @@
 
 This test trains the detector on the internal synthetic corpus only,
 then evaluates it against the external real-world corpus to measure
-actual generalization. This is the honest metric — no training on the
+actual generalization. This is the honest metric  --  no training on the
 evaluation set.
 
 Target: F1 >= 0.85 on external real-world data.
@@ -28,7 +28,7 @@ def trained_detector() -> RedTeamDetector:
     texts = [p.text for p in corpus]
     labels = [p.label for p in corpus]
     det = RedTeamDetector(config=DetectorConfig(random_state=SEED))
-    # Train without real data — we evaluate against it.
+    # Train without real data  --  we evaluate against it.
     det.train(texts, labels, include_real_data=False)
     return det
 

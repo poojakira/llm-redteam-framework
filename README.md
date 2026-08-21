@@ -50,7 +50,7 @@ Adversarial prompt generation and injection detection framework that evaluates L
 
 - The 0.93 F1 reflects template-shared train/test splits. Real-world generalization is 0.70.
 - TF-IDF captures lexical patterns but cannot reason about semantic intent.
-- Does not execute prompts against a live LLM — evaluates the detector offline.
+- Does not execute prompts against a live LLM  --  evaluates the detector offline.
 - Cannot detect novel attack strategies absent from training templates.
 - Character n-gram approach is fundamentally limited against semantic attacks.
 
@@ -84,7 +84,7 @@ This gates prompt-handling code the same way SAST gates application code.
 
 Prompt injection is the #1 vulnerability in LLM-integrated applications (OWASP LLM01). This framework provides a repeatable methodology for measuring detector coverage against known attack taxonomies.
 
-The gap between in-distribution (0.93) and OOD (0.70) performance quantifies how fragile pattern-matching defenses are against novel injection techniques. This demonstrates why defense-in-depth — output filtering, privilege separation, context isolation, and least-privilege tool access — is necessary beyond input classification alone. No single layer catches everything; the goal is raising the cost and reducing the blast radius of successful injection.
+The gap between in-distribution (0.93) and OOD (0.70) performance quantifies how fragile pattern-matching defenses are against novel injection techniques. This demonstrates why defense-in-depth  --  output filtering, privilege separation, context isolation, and least-privilege tool access  --  is necessary beyond input classification alone. No single layer catches everything; the goal is raising the cost and reducing the blast radius of successful injection.
 
 ## License
 
