@@ -1,0 +1,68 @@
+# Version control
+.git
+.gitattributes
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.eggs
+*.egg
+dist
+build
+
+# Virtual environments
+.venv*
+venv
+env
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testing & coverage
+.pytest_cache
+.coverage
+htmlcov
+coverage.xml
+*.cover
+
+# Pre-commit
+.pre-commit-config.yaml
+.secrets.baseline
+
+# Documentation (not needed in runtime image)
+docs/
+*.md
+!README.md
+LICENSE
+CHANGELOG.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Benchmarks & evidence (large files not needed at runtime)
+benchmarks/
+evidence/
+results/
+dashboard/
+
+# Development tools
+Makefile
+pyproject.toml
+uv.lock
+requirements.txt
+
+# Model artifacts handled separately (multi-stage build)
+*.pkl
+*.pkl.sha256
