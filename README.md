@@ -2,13 +2,13 @@
 
 Offline evaluation harness for prompt-injection detectors. Generates adversarial corpora across six attack categories (OWASP LLM01/06/07), trains a baseline TF-IDF + Logistic Regression classifier, and measures held-out performance using grouped template splits that prevent data leakage.
 
-Key result: with the default grouped split (seed=42), the detector achieves **F1 = 0.97** on held-out templates it was never trained on, and **F1 = 1.0** on a random (in-distribution) split. Against external benchmark-style fixtures (novel phrasings outside the training corpus), the target is **F1 ≥ 0.85**. The gap between these numbers is the point — it quantifies how much generalization you lose as inputs diverge from training patterns.
+Key result: with the default grouped split (seed=42), the detector achieves **F1 = 0.97** on held-out templates it was never trained on, and **F1 = 1.0** on a random (in-distribution) split. Against external benchmark-style fixtures (novel phrasings outside the training corpus), the target is **F1 ≥ 0.85**. The gap between these numbers is the point - it quantifies how much generalization you lose as inputs diverge from training patterns.
 
 ---
 
 ## Summary
 
-Generates adversarial prompts across six attack categories mapped to the OWASP LLM Top 10, trains a lightweight offline detector (TF-IDF + Logistic Regression), evaluates with controlled train/test splits, and outputs SARIF for CI integration. No live LLM API calls required — runs entirely offline in air-gapped environments and CI pipelines.
+Generates adversarial prompts across six attack categories mapped to the OWASP LLM Top 10, trains a lightweight offline detector (TF-IDF + Logistic Regression), evaluates with controlled train/test splits, and outputs SARIF for CI integration. No live LLM API calls required - runs entirely offline in air-gapped environments and CI pipelines.
 
 ---
 
@@ -111,7 +111,7 @@ Here is how data moves through the system from start to finish:
 
 **Why TF-IDF + Logistic Regression instead of a transformer?**
 
-The goal is measuring detector methodology, not building the best possible detector. A simple model trains in seconds with zero GPU requirements. It runs in any CI environment. The grouped-split F1 of 0.97 looks strong, but external benchmark fixtures (novel phrasings never seen during training) show the ceiling drops — this demonstrates the fundamental limitation of pattern-matching approaches and motivates defense-in-depth.
+The goal is measuring detector methodology, not building the best possible detector. A simple model trains in seconds with zero GPU requirements. It runs in any CI environment. The grouped-split F1 of 0.97 looks strong, but external benchmark fixtures (novel phrasings never seen during training) show the ceiling drops - this demonstrates the fundamental limitation of pattern-matching approaches and motivates defense-in-depth.
 
 **Why offline evaluation instead of probing a live LLM?**
 
@@ -288,8 +288,8 @@ The `/scan` API endpoint now enforces rate limiting and supports API key authent
 
 In-memory per-IP rate limiting is enforced based on `llm-security-config.yaml`:
 
-- **`max_requests_per_minute`** (default: 60) — Maximum scan requests per IP per minute. Exceeding this returns HTTP 429.
-- **`max_prompt_length_chars`** (default: 32768) — Maximum prompt length accepted. Exceeding this returns HTTP 413.
+- **`max_requests_per_minute`** (default: 60) - Maximum scan requests per IP per minute. Exceeding this returns HTTP 429.
+- **`max_prompt_length_chars`** (default: 32768) - Maximum prompt length accepted. Exceeding this returns HTTP 413.
 
 ### API Key Authentication
 
@@ -340,7 +340,7 @@ curl -X POST http://localhost:8000/scan \
 |------------|-------|
 | Attack Categories | 6 |
 | OWASP Coverage | LLM01, LLM06, LLM07 |
-| Test Coverage | 94% (34 tests) |
+| Test Coverage | 94% (84 tests) |
 
 ### Limitations
 
@@ -359,7 +359,7 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 94% (34 tests) | Covers generators, detectors, eval harness, output |
+| Test coverage | 94% (84 tests) | Covers generators, detectors, eval harness, output |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Configuration | Secure-by-default YAML | Every default blocks threats; relaxation requires justification |

@@ -101,9 +101,25 @@ async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSON
 
 
 # ── Prometheus metrics ─────────────────────────────────────────────────────────
-SCAN_REQUESTS = Counter("scan_requests_total", "Total /scan requests", ["status"])
-FINDINGS_TOTAL = Counter("findings_total", "Findings by severity", ["severity"])
-SCAN_LATENCY = Histogram(
+# Use try/except to survive module reloads (e.g., during testing with importlib.reload).
+
+def _get_or_create_metric(cls, name, *args, **kwargs):
+    """Return an existing metric or create a new one, surviving reloads."""
+    try:
+        return cls(name, *args, **kwargs)
+    except ValueError:
+        # Already registered — retrieve the existing collector.
+        from prometheus_client import REGISTRY as _REG
+        collector = _REG._names_to_collectors.get(name)
+        if collector is not None:
+            return collector
+        raise
+
+
+SCAN_REQUESTS = _get_or_create_metric(Counter, "scan_requests_total", "Total /scan requests", ["status"])
+FINDINGS_TOTAL = _get_or_create_metric(Counter, "findings_total", "Findings by severity", ["severity"])
+SCAN_LATENCY = _get_or_create_metric(
+    Histogram,
     "scan_latency_seconds",
     "End-to-end scan latency",
     buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),

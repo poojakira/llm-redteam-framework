@@ -2,11 +2,15 @@
 
 These tests exercise the FastAPI /scan endpoint's security middleware without
 requiring any external services or detector models to be fully operational.
+
+Strategy: avoid importlib.reload entirely. Instead, patch module-level variables
+(_API_KEY, _RATE_LIMIT, _MAX_PROMPT_LENGTH, _request_log) directly. This sidesteps
+Prometheus duplicate-metric errors and avoids triggering heavy imports (torch/
+sentence-transformers) that can crash on some platforms.
 """
 
 from __future__ import annotations
 
-import time
 from unittest.mock import patch
 
 import pytest
@@ -26,32 +30,29 @@ def _reset_rate_limiter():
 @pytest.fixture()
 def client_no_auth():
     """TestClient with no API key configured (auth disabled)."""
-    with patch.dict("os.environ", {"REDTEAM_API_KEY": ""}, clear=False):
-        # Re-import to pick up the patched env var
-        import importlib
+    import redteam.api.app as app_module
 
-        import redteam.api.app as app_module
-
-        importlib.reload(app_module)
-        from redteam.api.app import app
-
-        with TestClient(app) as c:
+    original_key = app_module._API_KEY
+    app_module._API_KEY = ""
+    try:
+        with TestClient(app_module.app) as c:
             yield c
+    finally:
+        app_module._API_KEY = original_key
 
 
 @pytest.fixture()
 def client_with_auth():
     """TestClient with API key auth enabled (key='test-secret-key')."""
-    with patch.dict("os.environ", {"REDTEAM_API_KEY": "test-secret-key"}, clear=False):
-        import importlib
+    import redteam.api.app as app_module
 
-        import redteam.api.app as app_module
-
-        importlib.reload(app_module)
-        from redteam.api.app import app
-
-        with TestClient(app) as c:
+    original_key = app_module._API_KEY
+    app_module._API_KEY = "test-secret-key"
+    try:
+        with TestClient(app_module.app) as c:
             yield c
+    finally:
+        app_module._API_KEY = original_key
 
 
 # ──────────────────────────────────────────────────────────────────────────────
