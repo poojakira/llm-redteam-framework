@@ -9,7 +9,7 @@
 
 detection:
   # Confidence threshold above which a finding is reported.
-  # DEFAULT: 0.70  --  matches the realistic OOD F1=0.70 operating point.
+  # DEFAULT: 0.70  --  a conservative threshold that balances precision and recall.
   # LOWER values = more findings, more false positives.
   # RAISE only if you're accepting higher false-negative risk.
   confidence_threshold: 0.70
