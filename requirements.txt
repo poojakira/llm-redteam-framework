@@ -2,5 +2,6 @@ fastapi>=0.111
 numpy>=1.23
 prometheus-client>=0.20
 pydantic>=2.7
+pyyaml>=6.0
 scikit-learn>=1.1
 uvicorn[standard]>=0.29

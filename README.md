@@ -217,7 +217,7 @@ Output JSON contains `precision`, `recall`, `f1`, `n_test`, `false_positives`, a
 ### Run as a FastAPI service
 
 ```bash
-uvicorn redteam.api:app --host 0.0.0.0 --port 8000
+uvicorn redteam.api.app:app --host 0.0.0.0 --port 8000
 ```
 
 ```bash
@@ -292,6 +292,42 @@ The 0.93-to-0.70 F1 gap demonstrates why no single detection layer is sufficient
 
 ---
 
+## Security
+
+The `/scan` API endpoint now enforces rate limiting and supports API key authentication.
+
+### Rate Limiting
+
+In-memory per-IP rate limiting is enforced based on `llm-security-config.yaml`:
+
+- **`max_requests_per_minute`** (default: 60) — Maximum scan requests per IP per minute. Exceeding this returns HTTP 429.
+- **`max_prompt_length_chars`** (default: 32768) — Maximum prompt length accepted. Exceeding this returns HTTP 413.
+
+### API Key Authentication
+
+Authentication is controlled via the `REDTEAM_API_KEY` environment variable:
+
+- **If `REDTEAM_API_KEY` is set**: All requests to `/scan` must include an `X-API-Key` header matching the configured key. Requests without a valid key receive HTTP 401.
+- **If `REDTEAM_API_KEY` is not set**: Authentication is disabled (backwards-compatible). A response header `X-Auth-Status: disabled` indicates auth is not active.
+
+To enable:
+
+```bash
+export REDTEAM_API_KEY="your-secret-key-here"
+uvicorn redteam.api.app:app --host 0.0.0.0 --port 8000
+```
+
+Then include the key in requests:
+
+```bash
+curl -X POST http://localhost:8000/scan \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-key-here" \
+  -d '{"prompt": "test prompt"}'
+```
+
+---
+
 ## Evaluation Methods, Results, and Limitations
 
 ### Methodology
@@ -340,7 +376,6 @@ These are fundamental constraints, not bugs:
 | Reproducibility | Seed parameters for corpus + splits | Deterministic evaluation runs |
 
 **What is missing for production deployment as a service:**
-- Authentication/authorization on the `/scan` endpoint
 - TLS termination (deploy behind a reverse proxy)
 - Horizontal scaling configuration
 - Persistent storage for scan history

@@ -17,9 +17,12 @@ Usage
 from __future__ import annotations
 
 import logging
+import os
 import time
+from collections import defaultdict
 from typing import Any
 
+import yaml
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from prometheus_client import (
@@ -36,6 +39,48 @@ from redteam.detectors.rag_poisoning import RAGPoisoningDetector
 from redteam.output.sarif import findings_to_sarif
 
 logger = logging.getLogger(__name__)
+
+# ── Load config for rate limiting / input validation ───────────────────────────
+_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "..", "llm-security-config.yaml")
+try:
+    with open(_CONFIG_PATH) as _f:
+        _config = yaml.safe_load(_f)
+except FileNotFoundError:
+    _config = {}
+
+_RATE_LIMIT = _config.get("rate_limiting", {}).get("max_requests_per_minute", 60)
+_MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get("max_prompt_length_chars", 32768)
+
+# ── In-memory token-bucket rate limiter (per-IP, no external deps) ─────────────
+_request_log: dict[str, list[float]] = defaultdict(list)
+
+
+def _is_rate_limited(client_ip: str) -> bool:
+    """Return True if client_ip has exceeded _RATE_LIMIT requests in the last 60s."""
+    now = time.time()
+    window_start = now - 60.0
+    # Prune old entries
+    _request_log[client_ip] = [
+        ts for ts in _request_log[client_ip] if ts > window_start
+    ]
+    if len(_request_log[client_ip]) >= _RATE_LIMIT:
+        return True
+    _request_log[client_ip].append(now)
+    return False
+
+
+# ── API Key authentication ─────────────────────────────────────────────────────
+_API_KEY = os.environ.get("REDTEAM_API_KEY", "")
+
+
+def _check_api_key(request: Request) -> str | None:
+    """Validate API key if configured. Returns error message or None on success."""
+    if not _API_KEY:
+        return None  # Auth disabled, allow all
+    provided = request.headers.get("X-API-Key", "")
+    if provided != _API_KEY:
+        return "Invalid or missing API key"
+    return None
 
 app = FastAPI(
     title="LLM Red-Team Framework",
@@ -111,7 +156,7 @@ async def metrics() -> Response:
 
 
 @app.post("/scan", response_model=ScanResponse)
-async def scan(req: ScanRequest, request: Request) -> ScanResponse:
+async def scan(req: ScanRequest, request: Request, response: Response) -> ScanResponse:
     """
     Run all detectors against a prompt/response pair.
 
@@ -119,6 +164,28 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
     Sets ``blocked=True`` if any HIGH or CRITICAL finding is present.
     """
     import uuid
+
+    # ── Auth check ─────────────────────────────────────────────────────────
+    auth_error = _check_api_key(request)
+    if auth_error:
+        raise HTTPException(status_code=401, detail=auth_error)
+    if not _API_KEY:
+        response.headers["X-Auth-Status"] = "disabled - set REDTEAM_API_KEY to enable"
+
+    # ── Rate limiting ──────────────────────────────────────────────────────
+    client_ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(client_ip):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded: max {_RATE_LIMIT} requests/minute",
+        )
+
+    # ── Input length validation ────────────────────────────────────────────
+    if len(req.prompt) > _MAX_PROMPT_LENGTH:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Prompt too long: {len(req.prompt)} chars exceeds max {_MAX_PROMPT_LENGTH}",
+        )
 
     t0 = time.perf_counter()
     scan_id = str(uuid.uuid4())
