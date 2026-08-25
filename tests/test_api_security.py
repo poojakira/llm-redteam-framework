@@ -65,9 +65,7 @@ class TestRateLimiter:
         """Requests within the rate limit window should succeed (not 429)."""
         # Send a few requests well under the limit
         for _ in range(3):
-            resp = client_no_auth.post(
-                "/scan", json={"prompt": "Hello, how are you?"}
-            )
+            resp = client_no_auth.post("/scan", json={"prompt": "Hello, how are you?"})
             # Should not be rate limited (could be 200 or 500 depending on
             # detector availability, but never 429)
             assert resp.status_code != 429
@@ -145,17 +143,13 @@ class TestInputLengthValidation:
         from redteam.api.app import _MAX_PROMPT_LENGTH
 
         oversized_prompt = "A" * (_MAX_PROMPT_LENGTH + 1)
-        resp = client_no_auth.post(
-            "/scan", json={"prompt": oversized_prompt}
-        )
+        resp = client_no_auth.post("/scan", json={"prompt": oversized_prompt})
         assert resp.status_code == 413
         assert "Prompt too long" in resp.json()["detail"]
 
     def test_accepts_normal_input(self, client_no_auth):
         """Prompt within the length limit should not be rejected for size."""
-        resp = client_no_auth.post(
-            "/scan", json={"prompt": "This is a normal length prompt."}
-        )
+        resp = client_no_auth.post("/scan", json={"prompt": "This is a normal length prompt."})
         # Should not be rejected for length (never 413)
         assert resp.status_code != 413
 
@@ -164,8 +158,6 @@ class TestInputLengthValidation:
         from redteam.api.app import _MAX_PROMPT_LENGTH
 
         exact_prompt = "B" * _MAX_PROMPT_LENGTH
-        resp = client_no_auth.post(
-            "/scan", json={"prompt": exact_prompt}
-        )
+        resp = client_no_auth.post("/scan", json={"prompt": exact_prompt})
         # Exactly at limit should not trigger 413
         assert resp.status_code != 413
