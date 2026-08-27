@@ -11,3 +11,4 @@ report.json
 .coverage
 
 .venv-test/
+benchmarks/results/
