@@ -26,7 +26,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from llm_redteam_framework.detector import RedTeamDetector  # noqa: E402
+from redteam.detector import RedTeamDetector  # noqa: E402
 
 # ===========================================================================
 # InjectionBench-style fixtures
@@ -217,7 +217,7 @@ def evaluate_benchmark(
 
     start = time.perf_counter()
     for prompt, _ in fixtures:
-        prediction = detector.predict(prompt)
+        prediction = detector.predict([prompt])[0]
         y_pred.append(bool(prediction))
     elapsed = time.perf_counter() - start
 
@@ -247,8 +247,14 @@ def run_external_validation() -> dict[str, Any]:
 
     # Initialize and train detector
     print("\n[1/4] Initializing and training detector on internal corpus...")
+    from redteam.generators import build_corpus
+
+    corpus = build_corpus(seed=20240713)
     detector = RedTeamDetector()
-    detector.train()  # Train on the framework's internal labeled corpus
+    detector.train(
+        [item.text for item in corpus],
+        [item.label for item in corpus],
+    )  # Train on the framework's internal labeled corpus
     print("       Detector trained successfully.")
 
     # Evaluate on InjectionBench
@@ -258,7 +264,7 @@ def run_external_validation() -> dict[str, Any]:
     )
     print(f"       Samples: {injection_result.total_samples}")
     print(f"       F1: {injection_result.f1_score:.4f}")
-    print(f"       Status: {'✓ PASS' if injection_result.passed else '✗ FAIL'}")
+    print(f"       Status: {' PASS' if injection_result.passed else ' FAIL'}")
 
     # Evaluate on JailbreakBench
     print("\n[3/4] Evaluating on JailbreakBench fixtures...")
@@ -267,7 +273,7 @@ def run_external_validation() -> dict[str, Any]:
     )
     print(f"       Samples: {jailbreak_result.total_samples}")
     print(f"       F1: {jailbreak_result.f1_score:.4f}")
-    print(f"       Status: {'✓ PASS' if jailbreak_result.passed else '✗ FAIL'}")
+    print(f"       Status: {' PASS' if jailbreak_result.passed else ' FAIL'}")
 
     # Build report
     print("\n[4/4] Generating comparison report...")
@@ -331,20 +337,20 @@ def run_external_validation() -> dict[str, Any]:
         f"{injection_result.f1_score:<8.4f} "
         f"{injection_result.precision:<11.4f} "
         f"{injection_result.recall:<8.4f} "
-        f"{'✓ PASS' if injection_result.passed else '✗ FAIL'}"
+        f"{' PASS' if injection_result.passed else ' FAIL'}"
     )
     print(
         f"{'JailbreakBench':<20} "
         f"{jailbreak_result.f1_score:<8.4f} "
         f"{jailbreak_result.precision:<11.4f} "
         f"{jailbreak_result.recall:<8.4f} "
-        f"{'✓ PASS' if jailbreak_result.passed else '✗ FAIL'}"
+        f"{' PASS' if jailbreak_result.passed else ' FAIL'}"
     )
     print("-" * 70)
     print(f"{'Internal (ref)':<20} {'0.9700':<8}")
     print(f"{'External avg':<20} {report['comparison']['avg_external_f1']:<8.4f}")
     print("-" * 70)
-    print(f"Overall: {'✓ PASSED' if overall_passed else '✗ FAILED'}")
+    print(f"Overall: {' PASSED' if overall_passed else ' FAILED'}")
     print("=" * 70)
 
     return report

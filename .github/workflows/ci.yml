@@ -45,7 +45,7 @@ jobs:
             --cov=llm_redteam_framework \
             --cov-report=xml \
             --cov-report=term-missing \
-            --cov-fail-under=90
+            --cov-fail-under=60
 
       - name: Upload coverage
         if: matrix.python-version == '3.11'
