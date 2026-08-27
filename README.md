@@ -164,8 +164,11 @@ cd llm-redteam-framework
 python -m venv .venv
 # Linux/macOS:
 source .venv/bin/activate
-# Windows:
+# Windows (cmd.exe):
 .venv\Scripts\activate
+
+# Windows (PowerShell):
+.venv\Scripts\Activate.ps1
 
 # Install with development dependencies
 pip install -e ".[dev]"
