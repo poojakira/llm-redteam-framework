@@ -1,0 +1,83 @@
+name: Signed Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write  # Required for Sigstore OIDC
+
+jobs:
+  build:
+    name: Build & Sign Release
+    runs-on: ubuntu-latest
+    environment: release
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine sigstore cyclonedx-bom
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Generate SBOM (CycloneDX)
+        run: |
+          cyclonedx-py environment \
+            --output sbom.json \
+            --format json \
+            --schema-version 1.5
+
+      - name: Sign artifacts with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3
+        with:
+          inputs: |
+            dist/*.whl
+            dist/*.tar.gz
+            sbom.json
+
+      - name: Verify signatures
+        run: |
+          for f in dist/*.whl dist/*.tar.gz sbom.json; do
+            sigstore verify identity \
+              --cert-oidc-issuer https://token.actions.githubusercontent.com \
+              --cert-identity-regexp ".*" \
+              "$f"
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*
+            sbom.json
+            dist/*.sigstore.json
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') }}
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*.whl dist/*.tar.gz
+
+      - name: Upload SBOM as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90
