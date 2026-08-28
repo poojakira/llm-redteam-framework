@@ -343,7 +343,7 @@ curl -X POST http://localhost:8000/scan \
 |------------|-------|
 | Attack Categories | 6 |
 | OWASP Coverage | LLM01, LLM06, LLM07 |
-| Test Coverage | 68% (82 tests) |
+| Test Coverage | 96% (162 tests) |
 
 ### Limitations
 
@@ -362,7 +362,7 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 68% (82 tests) | Covers generators, detectors, eval harness, output |
+| Test coverage | 96% (162 tests) | Covers generators, detectors, eval harness, output |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Configuration | Secure-by-default YAML | Every default blocks threats; relaxation requires justification |

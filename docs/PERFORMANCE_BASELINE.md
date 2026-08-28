@@ -20,7 +20,7 @@ Detector: TF-IDF char n-gram + LogisticRegression.
 |--------|----------|------|
 | p95 predict latency | ~1.0 ms | must be < 5 ms |
 | Throughput (single thread) | ~1,400 prompts/sec | must be > 1,000 prompts/sec |
-| Test coverage (`redteam`) | ~68% | gate 60% (see pyproject.toml) |
+| Test coverage (`redteam`) | ~96% | gate 90% (see pyproject.toml) |
 
 External-fixture detection quality (from `external_validation.py`):
 
