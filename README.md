@@ -429,8 +429,8 @@ Based on repository structure and OWASP mapping gaps:
 
 - [INCIDENT_RUNBOOK.md](INCIDENT_RUNBOOK.md) - incident response for bypass discovery and false positives
 - [docs/PERFORMANCE_BASELINE.md](docs/PERFORMANCE_BASELINE.md) - detection latency baselines
-- [enchmarks/detection_perf.py](benchmarks/detection_perf.py) - throughput gate (>50k prompts/sec)
-- [enchmarks/external_validation.py](benchmarks/external_validation.py) - InjectionBench + JailbreakBench validation
+- [benchmarks/detection_perf.py](benchmarks/detection_perf.py) - throughput gate (>1,000 prompts/sec; ~1,400 measured)
+- [benchmarks/external_validation.py](benchmarks/external_validation.py) - InjectionBench + JailbreakBench validation
 
 ## License and Author
 
