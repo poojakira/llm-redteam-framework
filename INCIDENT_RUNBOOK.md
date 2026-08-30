@@ -97,9 +97,7 @@ c = build_corpus(); d = RedTeamDetector(); d.train(c); d.save('models/active/det
 8. **Deploy rule-based patch** (while model retrains):
    ```python
    # Add to rules/emergency_patterns.py
-   EMERGENCY_PATTERNS.append(
-       r"<regex_matching_technique>"
-   )
+   EMERGENCY_PATTERNS.append(r"<regex_matching_technique>")
    ```
 
 9. **Validate fix**

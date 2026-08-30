@@ -61,7 +61,7 @@ class EmbeddingDetector:
                 "Install with: pip install sentence-transformers"
             )
         self.model_name = model_name
-        self._encoder = _SentenceTransformer(model_name)
+        self._encoder = _SentenceTransformer(model_name)  # type: ignore[misc]
         self._classifier = LogisticRegression(
             C=C,
             max_iter=max_iter,

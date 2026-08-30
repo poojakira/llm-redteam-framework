@@ -200,7 +200,7 @@ class EmbeddingSimilarityDetector:
             min_df=1,
             sublinear_tf=True,
         )
-        matrix = self._vectorizer.fit_transform(_SEED_ATTACKS)
+        matrix = self._vectorizer.fit_transform(_SEED_ATTACKS)  # type: ignore[attr-defined]
         self._tfidf_matrix = matrix.toarray()
 
     def _embed_query(self, text: str) -> np.ndarray:

@@ -37,12 +37,12 @@ jobs:
           ruff format --check .
 
       - name: Type check
-        run: mypy llm_redteam_framework/
+        run: mypy src/redteam/ --ignore-missing-imports
 
       - name: Run tests with coverage
         run: |
           python -m pytest tests/ \
-            --cov=llm_redteam_framework \
+            --cov=redteam \
             --cov-report=xml \
             --cov-report=term-missing \
             --cov-fail-under=90
