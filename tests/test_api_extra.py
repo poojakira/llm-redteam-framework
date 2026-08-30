@@ -114,10 +114,9 @@ def test_check_api_key_unit_no_key():
 
 def test_get_or_create_metric_survives_duplicate():
     """Re-creating an existing metric name returns the existing collector."""
-    import redteam.api.app as app_module
     from prometheus_client import Counter
 
-    existing = app_module._get_or_create_metric(
-        Counter, "scan_requests_total", "dup", ["status"]
-    )
+    import redteam.api.app as app_module
+
+    existing = app_module._get_or_create_metric(Counter, "scan_requests_total", "dup", ["status"])
     assert existing is not None

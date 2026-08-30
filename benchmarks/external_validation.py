@@ -22,8 +22,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from redteam.detector import RedTeamDetector  # noqa: E402
@@ -176,22 +174,16 @@ class BenchmarkResult:
     passed: bool
 
 
-def compute_metrics(
-    y_true: list[bool], y_pred: list[bool]
-) -> dict[str, float]:
+def compute_metrics(y_true: list[bool], y_pred: list[bool]) -> dict[str, float]:
     """Compute classification metrics."""
-    tp = sum(1 for t, p in zip(y_true, y_pred) if t and p)
-    fp = sum(1 for t, p in zip(y_true, y_pred) if not t and p)
-    tn = sum(1 for t, p in zip(y_true, y_pred) if not t and not p)
-    fn = sum(1 for t, p in zip(y_true, y_pred) if t and not p)
+    tp = sum(1 for t, p in zip(y_true, y_pred, strict=False) if t and p)
+    fp = sum(1 for t, p in zip(y_true, y_pred, strict=False) if not t and p)
+    tn = sum(1 for t, p in zip(y_true, y_pred, strict=False) if not t and not p)
+    fn = sum(1 for t, p in zip(y_true, y_pred, strict=False) if t and not p)
 
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    f1 = (
-        2 * precision * recall / (precision + recall)
-        if (precision + recall) > 0
-        else 0.0
-    )
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
     accuracy = (tp + tn) / (tp + fp + tn + fn) if (tp + fp + tn + fn) > 0 else 0.0
 
     return {
@@ -259,18 +251,14 @@ def run_external_validation() -> dict[str, Any]:
 
     # Evaluate on InjectionBench
     print("\n[2/4] Evaluating on InjectionBench fixtures...")
-    injection_result = evaluate_benchmark(
-        detector, INJECTION_BENCH_FIXTURES, "InjectionBench"
-    )
+    injection_result = evaluate_benchmark(detector, INJECTION_BENCH_FIXTURES, "InjectionBench")
     print(f"       Samples: {injection_result.total_samples}")
     print(f"       F1: {injection_result.f1_score:.4f}")
     print(f"       Status: {' PASS' if injection_result.passed else ' FAIL'}")
 
     # Evaluate on JailbreakBench
     print("\n[3/4] Evaluating on JailbreakBench fixtures...")
-    jailbreak_result = evaluate_benchmark(
-        detector, JAILBREAK_BENCH_FIXTURES, "JailbreakBench"
-    )
+    jailbreak_result = evaluate_benchmark(detector, JAILBREAK_BENCH_FIXTURES, "JailbreakBench")
     print(f"       Samples: {jailbreak_result.total_samples}")
     print(f"       F1: {jailbreak_result.f1_score:.4f}")
     print(f"       Status: {' PASS' if jailbreak_result.passed else ' FAIL'}")
@@ -321,8 +309,7 @@ def run_external_validation() -> dict[str, Any]:
                 (injection_result.f1_score + jailbreak_result.f1_score) / 2, 4
             ),
             "internal_vs_external_delta": round(
-                0.97
-                - (injection_result.f1_score + jailbreak_result.f1_score) / 2,
+                0.97 - (injection_result.f1_score + jailbreak_result.f1_score) / 2,
                 4,
             ),
         },

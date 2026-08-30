@@ -13,7 +13,6 @@ Outputs JSON report to stdout and benchmarks/results/perf_results.json.
 """
 
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -25,7 +24,6 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from redteam.detector import RedTeamDetector  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Synthetic prompt corpus (10,000 prompts mixing benign and adversarial)
@@ -171,10 +169,7 @@ def run_benchmark() -> dict[str, Any]:
             "p95_under_5ms": float(np.percentile(latencies_ms, 95)) < 5.0,
             "throughput_over_1k": throughput > 1_000,
         },
-        "passed": (
-            float(np.percentile(latencies_ms, 95)) < 5.0
-            and throughput > 1_000
-        ),
+        "passed": (float(np.percentile(latencies_ms, 95)) < 5.0 and throughput > 1_000),
     }
 
     # Print summary

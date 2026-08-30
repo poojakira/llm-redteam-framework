@@ -15,16 +15,41 @@ from redteam.output.sarif import (
 
 def _findings_all_types():
     return [
-        {"rule_id": "LLM01-PromptInjection", "severity": "HIGH", "message": "inj",
-         "detector": "embedding_similarity", "owasp_llm_id": "LLM01"},
-        {"rule_id": "LLM06-PIILeakage", "severity": "CRITICAL", "message": "pii",
-         "detector": "pii_leakage", "owasp_llm_id": "LLM06"},
-        {"rule_id": "LLM07-RAGPoisoning", "severity": "MEDIUM", "message": "rag",
-         "detector": "rag_poisoning", "owasp_llm_id": "LLM07"},
-        {"rule_id": "LLM02-InsecureOutput", "severity": "LOW", "message": "out",
-         "detector": "output", "owasp_llm_id": "LLM02"},
-        {"rule_id": "UNKNOWN-RULE", "severity": "NOTE", "message": "note",
-         "detector": "x", "owasp_llm_id": ""},
+        {
+            "rule_id": "LLM01-PromptInjection",
+            "severity": "HIGH",
+            "message": "inj",
+            "detector": "embedding_similarity",
+            "owasp_llm_id": "LLM01",
+        },
+        {
+            "rule_id": "LLM06-PIILeakage",
+            "severity": "CRITICAL",
+            "message": "pii",
+            "detector": "pii_leakage",
+            "owasp_llm_id": "LLM06",
+        },
+        {
+            "rule_id": "LLM07-RAGPoisoning",
+            "severity": "MEDIUM",
+            "message": "rag",
+            "detector": "rag_poisoning",
+            "owasp_llm_id": "LLM07",
+        },
+        {
+            "rule_id": "LLM02-InsecureOutput",
+            "severity": "LOW",
+            "message": "out",
+            "detector": "output",
+            "owasp_llm_id": "LLM02",
+        },
+        {
+            "rule_id": "UNKNOWN-RULE",
+            "severity": "NOTE",
+            "message": "note",
+            "detector": "x",
+            "owasp_llm_id": "",
+        },
     ]
 
 
@@ -45,11 +70,11 @@ def test_severity_to_level_mapping():
     doc = findings_to_sarif("s", _findings_all_types())
     results = doc["runs"][0]["results"]
     levels = {r["ruleId"]: r["level"] for r in results}
-    assert levels["LLM01-PromptInjection"] == "error"   # HIGH
-    assert levels["LLM06-PIILeakage"] == "error"        # CRITICAL
-    assert levels["LLM07-RAGPoisoning"] == "warning"    # MEDIUM
-    assert levels["LLM02-InsecureOutput"] == "note"     # LOW
-    assert levels["UNKNOWN-RULE"] == "none"             # NOTE
+    assert levels["LLM01-PromptInjection"] == "error"  # HIGH
+    assert levels["LLM06-PIILeakage"] == "error"  # CRITICAL
+    assert levels["LLM07-RAGPoisoning"] == "warning"  # MEDIUM
+    assert levels["LLM02-InsecureOutput"] == "note"  # LOW
+    assert levels["UNKNOWN-RULE"] == "none"  # NOTE
 
 
 def test_findings_defaults_when_keys_missing():
