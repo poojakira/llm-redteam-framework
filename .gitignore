@@ -5,10 +5,22 @@ __pycache__/
 build/
 dist/
 .pytest_cache/
+# Pickle model artifacts — never commit serialized models
 *.pkl
+# SHA-256 checksums are only useful if the matching .pkl is also present;
+# committing an orphaned .sha256 (without the .pkl) is misleading.
+*.pkl.sha256
 report.json
 .venv/
-.coverage
-
 .venv-test/
+.coverage
+.coverage.*
+htmlcov/
 benchmarks/results/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
