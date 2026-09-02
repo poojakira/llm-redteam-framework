@@ -2,7 +2,9 @@
 
 Offline evaluation harness for prompt-injection detectors. Generates adversarial corpora across six attack categories (OWASP LLM01/06/07), trains a baseline TF-IDF + Logistic Regression classifier, and measures held-out performance using grouped template splits that prevent data leakage.
 
-Key result: with the default grouped split (seed=42), the detector achieves **F1 = 0.97** on held-out templates it was never trained on, and **F1 = 1.0** on a random (in-distribution) split. Against external benchmark-style fixtures (novel phrasings outside the training corpus), the target is **F1 ≥ 0.85**. The gap between these numbers is the point - it quantifies how much generalization you lose as inputs diverge from training patterns.
+Key result: with the default grouped split (seed=42), the detector achieves **F1 = 0.97** on held-out templates it was never trained on, and **F1 = 1.0** on a random (in-distribution) split. On a dedicated **out-of-distribution benchmark of natural-language paraphrases that deliberately omit the structural tells** the model keys on ("ignore previous instructions", bracketed system tags, encoded payloads), performance drops to a reproducibly measured **F1 = 0.83** (precision 0.79, recall 0.88). That ~14-point drop is the point of this repository: it quantifies exactly how much of a pattern-matching detector's headline score is memorised surface structure rather than genuine generalization. Reproduce with `python benchmarks/ood_novel_phrasings.py` (value pinned in `tests/test_ood_benchmark.py`).
+
+> Note on "external benchmark" fixtures: the InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` score ~0.98, but they retain canonical attack markers and are therefore *not* a true OOD test. The `ood_novel_phrasings` benchmark above is the honest generalization measurement.
 
 ---
 
@@ -330,26 +332,26 @@ curl -X POST http://localhost:8000/scan \
 
 ### Results
 
-| Metric | Random Split (In-Distribution) | Grouped Split (OOD Templates) | External Benchmarks |
-|--------|-------------------------------|-------------------------------|---------------------|
-| F1 Score | 1.00 | 0.97 | ≥ 0.85 (target) |
-| Precision | 1.00 | 0.94 | varies |
-| Recall | 1.00 | 1.00 | varies |
-| False Positive Rate | 0.0% | 7.9% | < 20% (target) |
+| Metric | Random Split (In-Distribution) | Grouped Split (OOD Templates) | Structural Fixtures | Novel-Phrasing OOD |
+|--------|-------------------------------|-------------------------------|---------------------|--------------------|
+| F1 Score | 1.00 | 0.97 | 0.98 | **0.83** |
+| Precision | 1.00 | 0.94 | ~0.98 | 0.79 |
+| Recall | 1.00 | 1.00 | ~0.98 | 0.88 |
+| False Positive Rate | 0.0% | 7.9% | ~1% | 24% (6/25) |
 
-*Measured with seed=42, corpus-seed=20240713, test-size=0.3. Pinned in `tests/test_eval.py`.*
+*Grouped/random measured with seed=42, corpus-seed=20240713, test-size=0.3 (pinned in `tests/test_eval.py`). Structural fixtures from `benchmarks/external_validation.py`. Novel-phrasing OOD from `benchmarks/ood_novel_phrasings.py` (pinned in `tests/test_ood_benchmark.py`). The novel-phrasing column is the honest generalization figure — structural fixtures still contain the markers the model memorised.*
 
 | Additional | Value |
 |------------|-------|
 | Attack Categories | 6 |
 | OWASP Coverage | LLM01, LLM06, LLM07 |
-| Test Coverage | 96% (166 tests: 165 passed, 1 skipped) |
+| Test Coverage | 96% (168 tests: 167 passed, 1 skipped) |
 
 ### Limitations
 
 These are fundamental constraints, not bugs:
 
-1. **The 1.0 random-split F1 is optimistic.** It reflects template-shared train/test splits where the model has seen the same template shapes during training. The grouped split (F1=0.97) is a better estimate of real-world generalization, and external benchmarks (F1 ≥ 0.85) test against entirely novel phrasings.
+1. **The 1.0 random-split F1 is optimistic.** It reflects template-shared train/test splits where the model has seen the same template shapes during training. The grouped split (F1=0.97) is a better estimate, but even that shares template *families*. The honest ceiling is the novel-phrasing OOD benchmark (**F1=0.83**), where natural-language paraphrases with no structural markers cause a reproducible ~14-point drop.
 2. **TF-IDF captures lexical patterns, not semantic intent.** An attacker who phrases an injection in natural language with no structural tells will bypass this detector.
 3. **No live LLM execution.** The framework evaluates the detector offline. It does not test whether an actual LLM would comply with the injected instruction.
 4. **Cannot detect truly novel attacks.** If an attack strategy is absent from the training templates, the detector has no signal to work with.
@@ -362,7 +364,7 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 96% (166 tests: 165 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
+| Test coverage | 96% (168 tests: 167 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Configuration | Secure-by-default YAML | Every default blocks threats; relaxation requires justification |

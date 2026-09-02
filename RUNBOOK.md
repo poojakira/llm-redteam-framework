@@ -38,6 +38,21 @@ redteam-eval --corpus-seed 7 --output eval.json
 Output JSON includes `precision`, `recall`, `f1`, `false_positive_rate`,
 `accuracy`, `n_total`, `n_train`, and `n_test`.
 
+## Measure Out-of-Distribution Degradation
+
+The grouped/random splits share template *families*. To measure the honest
+generalization ceiling against natural-language paraphrases with no structural
+tells, run the OOD benchmark:
+
+```bash
+python benchmarks/ood_novel_phrasings.py
+```
+
+Expected (deterministic): precision 0.7857, recall 0.88, **F1 0.8302**, accuracy
+0.82 — a reproducible ~14-point drop from the grouped-split F1 of 0.97. The
+result is written to `benchmarks/results/ood_novel_phrasings_results.json` and
+pinned in `tests/test_ood_benchmark.py`.
+
 ## Run the API Server
 
 ```bash
