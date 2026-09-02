@@ -264,7 +264,7 @@ This section covers threats to the framework itself (not the attacks it generate
 | Prompt content leaks via logs | Data exposure | `log_prompt_content: false` by default; structured JSON logs |
 | Bypassing detection via novel encoding | False negative | Obfuscation decoder runs before classification; multi-turn analysis enabled by default |
 | Dependency supply chain compromise | Arbitrary code execution | Dependabot enabled; `pip-audit` in CI; pinned versions in `uv.lock` |
-| Model pickle deserialization attack | Code execution | `detector.pkl.sha256` integrity check before loading |
+| Model pickle deserialization attack | Code execution | Detector `save()` writes a SHA-256 sidecar and `load()` verifies it (and requires `trusted=True`) before deserializing; no model pickle is shipped in this repo |
 
 ### Security Assumptions
 
@@ -343,7 +343,7 @@ curl -X POST http://localhost:8000/scan \
 |------------|-------|
 | Attack Categories | 6 |
 | OWASP Coverage | LLM01, LLM06, LLM07 |
-| Test Coverage | 96% (162 tests) |
+| Test Coverage | 96% (166 tests: 165 passed, 1 skipped) |
 
 ### Limitations
 
@@ -362,14 +362,14 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 96% (162 tests) | Covers generators, detectors, eval harness, output |
+| Test coverage | 96% (166 tests: 165 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Configuration | Secure-by-default YAML | Every default blocks threats; relaxation requires justification |
 | Observability | Prometheus metrics + structured JSON logs | Request ID tracing, threat type, confidence |
 | Rate limiting | 60 req/min, 32K char max | Prevents resource exhaustion |
 | SARIF output | GitHub Code Scanning compatible | Zero-config integration |
-| Model integrity | SHA-256 checksum for detector pickle | Prevents deserialization attacks |
+| Model integrity | SHA-256 sidecar written on `save()`, verified on `load()` | Detectors are trained on-the-fly; when persisted, integrity is checked before deserialization |
 | Pre-commit hooks | Ruff linting configured | Enforces code quality at commit time |
 | Documentation | README, RUNBOOK, SECURITY, CHANGELOG | Operational and security docs present |
 | Reproducibility | Seed parameters for corpus + splits | Deterministic evaluation runs |

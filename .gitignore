@@ -13,6 +13,7 @@ dist/
 report.json
 .venv/
 .venv-test/
+.venv-audit/
 .coverage
 .coverage.*
 htmlcov/
