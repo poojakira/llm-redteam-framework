@@ -262,7 +262,7 @@ def grouped_train_test_split(
     test_set: set[str] = set(unique_templates[:n_test])
 
     X_train, X_test, y_train, y_test = [], [], [], []
-    for text, label, tid in zip(texts, labels, template_ids):
+    for text, label, tid in zip(texts, labels, template_ids, strict=False):
         if tid in test_set:
             X_test.append(text)
             y_test.append(label)
@@ -274,7 +274,7 @@ def grouped_train_test_split(
 
 
 def evaluate_with_holdout(
-    detector: "RedTeamDetector",
+    detector: RedTeamDetector,
     texts: list[str],
     labels: list[int],
     template_ids: list[str] | None = None,
@@ -304,9 +304,7 @@ def evaluate_with_holdout(
         Keys: ``precision``, ``recall``, ``f1``, ``n_train``, ``n_test``,
         ``split_method`` (``"grouped"`` or ``"stratified"``).
     """
-    X_train, X_test, y_train, y_test = grouped_train_test_split(
-        texts, labels, template_ids
-    )
+    X_train, X_test, y_train, y_test = grouped_train_test_split(texts, labels, template_ids)
 
     detector.train(X_train, y_train, include_real_data=False)  # type: ignore[arg-type]
     y_pred = detector.predict(X_test)

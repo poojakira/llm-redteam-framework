@@ -87,7 +87,6 @@ def test_reported_fp_rate_is_nonzero() -> None:
     assert report.false_positive_rate > 0.0
 
 
-
 # ---------------------------------------------------------------------------
 # New tests for grouped_train_test_split and evaluate_with_holdout
 # ---------------------------------------------------------------------------
@@ -106,20 +105,13 @@ def test_grouped_split_no_template_overlap() -> None:
 
     # Rebuild the template-id sets from the split indices.
     train_tids = {
-        tid
-        for p, tid in zip(corpus, template_ids)
-        if p.text in set(X_train)
+        tid for p, tid in zip(corpus, template_ids, strict=False) if p.text in set(X_train)
     }
-    test_tids = {
-        tid
-        for p, tid in zip(corpus, template_ids)
-        if p.text in set(X_test)
-    }
+    test_tids = {tid for p, tid in zip(corpus, template_ids, strict=False) if p.text in set(X_test)}
 
     # The two sets must be completely disjoint — the whole point of grouped holdout.
     assert train_tids.isdisjoint(test_tids), (
-        "Template IDs appear in both train and test: "
-        f"{train_tids & test_tids}"
+        "Template IDs appear in both train and test: " f"{train_tids & test_tids}"
     )
     # Both splits must be non-empty.
     assert X_train and X_test
@@ -162,12 +154,8 @@ def test_evaluate_with_holdout_returns_honest_f1() -> None:
 
     # n_train and n_test must each be strictly less than the full corpus size,
     # confirming the data was actually split rather than evaluated on itself.
-    assert result["n_train"] < total, (
-        f"n_train ({result['n_train']}) should be < total ({total})"
-    )
-    assert result["n_test"] < total, (
-        f"n_test ({result['n_test']}) should be < total ({total})"
-    )
+    assert result["n_train"] < total, f"n_train ({result['n_train']}) should be < total ({total})"
+    assert result["n_test"] < total, f"n_test ({result['n_test']}) should be < total ({total})"
     assert result["n_train"] + result["n_test"] == total
 
     # Grouped split was requested, so the method must be reported correctly.
