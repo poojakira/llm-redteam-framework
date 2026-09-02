@@ -200,6 +200,139 @@ def evaluate(
     return report, detector
 
 
+def grouped_train_test_split(
+    texts: list[str],
+    labels: list[int],
+    template_ids: list[str] | None,
+    test_size: float = 0.3,
+    seed: int = 42,
+) -> tuple[list[str], list[str], list[int], list[int]]:
+    """Split texts/labels so entire template groups never straddle train and test.
+
+    This prevents the subtle leakage where a test sample's template phrasing was
+    seen during training (which inflates F1 because the classifier memorises
+    surface patterns rather than generalising to novel attack phrasings).
+
+    Parameters
+    ----------
+    texts:
+        Raw prompt strings.
+    labels:
+        Integer labels aligned with *texts* (e.g. ``LABEL_ADVERSARIAL`` /
+        ``LABEL_BENIGN``).
+    template_ids:
+        One template identifier per sample.  When ``None``, the function falls
+        back to a standard stratified :func:`sklearn.model_selection.train_test_split`.
+    test_size:
+        Fraction of *templates* (not samples) reserved for the test split.
+    seed:
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    tuple[list[str], list[str], list[int], list[int]]
+        ``(X_train, X_test, y_train, y_test)``
+    """
+    if template_ids is None:
+        # Fallback: standard stratified split — no template grouping available.
+        X_train, X_test, y_train, y_test = train_test_split(
+            texts,
+            labels,
+            test_size=test_size,
+            random_state=seed,
+            stratify=labels,
+        )
+        return list(X_train), list(X_test), list(y_train), list(y_test)
+
+    # --- Grouped split: hold out whole template families ---
+    rng = random.Random(seed)
+
+    # Collect the unique template ids in a deterministic order.
+    seen: dict[str, None] = {}
+    for tid in template_ids:
+        seen[tid] = None
+    unique_templates = list(seen.keys())
+
+    rng.shuffle(unique_templates)
+    n_test = max(1, ceil(len(unique_templates) * test_size))
+    # Always keep at least one template for training.
+    if n_test >= len(unique_templates):
+        n_test = len(unique_templates) - 1
+
+    test_set: set[str] = set(unique_templates[:n_test])
+
+    X_train, X_test, y_train, y_test = [], [], [], []
+    for text, label, tid in zip(texts, labels, template_ids):
+        if tid in test_set:
+            X_test.append(text)
+            y_test.append(label)
+        else:
+            X_train.append(text)
+            y_train.append(label)
+
+    return X_train, X_test, y_train, y_test
+
+
+def evaluate_with_holdout(
+    detector: "RedTeamDetector",
+    texts: list[str],
+    labels: list[int],
+    template_ids: list[str] | None = None,
+) -> dict:
+    """Train *detector* on a grouped-holdout train split, evaluate on the test split.
+
+    This is the honest evaluation path: the detector is trained only on the
+    train portion and evaluated on held-out data it has never seen.  When
+    ``template_ids`` are supplied the split is grouped (no template overlap);
+    otherwise a stratified random split is used.
+
+    Parameters
+    ----------
+    detector:
+        An **untrained** :class:`~redteam.detector.RedTeamDetector` instance.
+        The function calls ``detector.train(X_train, y_train)`` internally.
+    texts:
+        Raw prompt strings.
+    labels:
+        Integer labels aligned with *texts*.
+    template_ids:
+        Optional per-sample template identifiers; enables grouped splitting.
+
+    Returns
+    -------
+    dict
+        Keys: ``precision``, ``recall``, ``f1``, ``n_train``, ``n_test``,
+        ``split_method`` (``"grouped"`` or ``"stratified"``).
+    """
+    X_train, X_test, y_train, y_test = grouped_train_test_split(
+        texts, labels, template_ids
+    )
+
+    detector.train(X_train, y_train, include_real_data=False)  # type: ignore[arg-type]
+    y_pred = detector.predict(X_test)
+
+    y_test_arr = np.array(y_test, dtype=int)
+    from ..generators import LABEL_ADVERSARIAL as _ADV  # local import avoids circular
+
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        y_test_arr,
+        y_pred,
+        labels=[_ADV],
+        average="binary",
+        pos_label=_ADV,
+        zero_division=0,
+    )
+
+    return {
+        "precision": float(precision),
+        "recall": float(recall),
+        "f1": float(f1),
+        "n_train": len(X_train),
+        "n_test": len(X_test),
+        "split_method": "grouped" if template_ids is not None else "stratified",
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point: run the evaluation and print / save the JSON report."""
     parser = argparse.ArgumentParser(description="Run held-out detector evaluation.")
