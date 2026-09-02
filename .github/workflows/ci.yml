@@ -54,6 +54,27 @@ jobs:
           name: coverage-report
           path: coverage.xml
 
+  security-audit:
+    name: Dependency Audit (pip-audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          pip install -e ".[dev]"
+
+      - name: Audit dependencies (blocking)
+        run: pip-audit --skip-editable --progress-spinner=off
+
   benchmarks:
     name: Performance Gate
     runs-on: ubuntu-latest
