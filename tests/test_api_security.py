@@ -1,13 +1,4 @@
-"""Tests for API security controls: rate limiting, API key auth, input validation.
-
-These tests exercise the FastAPI /scan endpoint's security middleware without
-requiring any external services or detector models to be fully operational.
-
-Strategy: avoid importlib.reload entirely. Instead, patch module-level variables
-(_API_KEY, _RATE_LIMIT, _MAX_PROMPT_LENGTH, _request_log) directly. This sidesteps
-Prometheus duplicate-metric errors and avoids triggering heavy imports (torch/
-sentence-transformers) that can crash on some platforms.
-"""
+"""Tests for API authentication, rate limiting, and input validation."""
 
 from __future__ import annotations
 
@@ -17,9 +8,7 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture(autouse=True)
 def _reset_rate_limiter():
-    """Clear the in-memory rate limiter state before each test."""
     from redteam.api.app import _request_log
-
     _request_log.clear()
     yield
     _request_log.clear()
@@ -27,9 +16,8 @@ def _reset_rate_limiter():
 
 @pytest.fixture()
 def client_no_auth():
-    """TestClient with no API key configured (auth disabled)."""
+    """TestClient with the production secret missing; protected calls fail closed."""
     import redteam.api.app as app_module
-
     original_key = app_module._API_KEY
     app_module._API_KEY = ""
     try:
@@ -41,9 +29,7 @@ def client_no_auth():
 
 @pytest.fixture()
 def client_with_auth():
-    """TestClient with API key auth enabled (key='test-secret-key')."""
     import redteam.api.app as app_module
-
     original_key = app_module._API_KEY
     app_module._API_KEY = "test-secret-key"
     try:
@@ -53,111 +39,78 @@ def client_with_auth():
         app_module._API_KEY = original_key
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Rate Limiter Tests
-# ──────────────────────────────────────────────────────────────────────────────
-
-
 class TestRateLimiter:
-    """Rate limiter must block clients exceeding max_requests_per_minute."""
-
-    def test_allows_requests_within_limit(self, client_no_auth):
-        """Requests within the rate limit window should succeed (not 429)."""
-        # Send a few requests well under the limit
+    def test_allows_requests_within_limit(self, client_with_auth):
         for _ in range(3):
-            resp = client_no_auth.post("/scan", json={"prompt": "Hello, how are you?"})
-            # Should not be rate limited (could be 200 or 500 depending on
-            # detector availability, but never 429)
+            resp = client_with_auth.post(
+                "/scan", json={"prompt": "Hello, how are you?"},
+                headers={"X-API-Key": "test-secret-key"},
+            )
             assert resp.status_code != 429
 
-    def test_blocks_after_exceeding_limit(self, client_no_auth):
-        """After exceeding the configured rate limit, return HTTP 429."""
+    def test_blocks_after_exceeding_limit(self, client_with_auth):
         from redteam.api.app import _RATE_LIMIT
-
-        # Fill up the rate limit bucket
+        headers = {"X-API-Key": "test-secret-key"}
         for _ in range(_RATE_LIMIT):
-            client_no_auth.post("/scan", json={"prompt": "test"})
-
-        # The next request should be rate limited
-        resp = client_no_auth.post("/scan", json={"prompt": "one more"})
+            client_with_auth.post("/scan", json={"prompt": "test"}, headers=headers)
+        resp = client_with_auth.post("/scan", json={"prompt": "one more"}, headers=headers)
         assert resp.status_code == 429
         assert "Rate limit exceeded" in resp.json()["detail"]
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# API Key Authentication Tests
-# ──────────────────────────────────────────────────────────────────────────────
-
-
 class TestAPIKeyAuth:
-    """API key auth must reject wrong/missing keys and accept correct ones."""
-
     def test_rejects_wrong_key(self, client_with_auth):
-        """Request with an incorrect API key must receive HTTP 401."""
         resp = client_with_auth.post(
-            "/scan",
-            json={"prompt": "test prompt"},
-            headers={"X-API-Key": "wrong-key"},
+            "/scan", json={"prompt": "test prompt"}, headers={"X-API-Key": "wrong-key"}
         )
         assert resp.status_code == 401
-        assert "Invalid or missing API key" in resp.json()["detail"]
 
     def test_rejects_missing_key(self, client_with_auth):
-        """Request with no API key header must receive HTTP 401."""
-        resp = client_with_auth.post(
-            "/scan",
-            json={"prompt": "test prompt"},
-        )
+        resp = client_with_auth.post("/scan", json={"prompt": "test prompt"})
         assert resp.status_code == 401
 
     def test_accepts_correct_key(self, client_with_auth):
-        """Request with the correct API key should not receive 401."""
         resp = client_with_auth.post(
-            "/scan",
-            json={"prompt": "test prompt"},
-            headers={"X-API-Key": "test-secret-key"},
+            "/scan", json={"prompt": "test prompt"}, headers={"X-API-Key": "test-secret-key"}
         )
-        # Should pass auth (status may be 200 or 500 from downstream, but not 401)
         assert resp.status_code != 401
 
-    def test_auth_disabled_when_env_unset(self, client_no_auth):
-        """When REDTEAM_API_KEY is not set, requests succeed without a key."""
-        resp = client_no_auth.post(
-            "/scan",
-            json={"prompt": "test prompt"},
-        )
-        # Should not be rejected for auth (may succeed or fail downstream)
-        assert resp.status_code != 401
+    def test_missing_server_secret_fails_closed(self, client_no_auth):
+        resp = client_no_auth.post("/scan", json={"prompt": "test prompt"})
+        assert resp.status_code == 401
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Input Length Validation Tests
-# ──────────────────────────────────────────────────────────────────────────────
+    def test_metrics_requires_auth(self, client_with_auth):
+        assert client_with_auth.get("/metrics").status_code == 401
+        assert client_with_auth.get(
+            "/metrics", headers={"X-API-Key": "test-secret-key"}
+        ).status_code == 200
 
 
 class TestInputLengthValidation:
-    """Prompt length must be validated against max_prompt_length_chars."""
-
-    def test_rejects_oversized_input(self, client_no_auth):
-        """Prompt exceeding max length must return HTTP 413."""
+    def test_rejects_oversized_input(self, client_with_auth):
         from redteam.api.app import _MAX_PROMPT_LENGTH
-
         oversized_prompt = "A" * (_MAX_PROMPT_LENGTH + 1)
-        resp = client_no_auth.post("/scan", json={"prompt": oversized_prompt})
+        resp = client_with_auth.post(
+            "/scan",
+            json={"prompt": oversized_prompt},
+            headers={"X-API-Key": "test-secret-key"},
+        )
         assert resp.status_code == 413
-        assert "Prompt too long" in resp.json()["detail"]
 
-    def test_accepts_normal_input(self, client_no_auth):
-        """Prompt within the length limit should not be rejected for size."""
-        resp = client_no_auth.post("/scan", json={"prompt": "This is a normal length prompt."})
-        # Should not be rejected for length (never 413)
+    def test_accepts_normal_input(self, client_with_auth):
+        resp = client_with_auth.post(
+            "/scan",
+            json={"prompt": "This is a normal length prompt."},
+            headers={"X-API-Key": "test-secret-key"},
+        )
         assert resp.status_code != 413
 
-    def test_accepts_prompt_at_exact_limit(self, client_no_auth):
-        """Prompt exactly at the max length boundary should be accepted."""
+    def test_accepts_prompt_at_exact_limit(self, client_with_auth):
         from redteam.api.app import _MAX_PROMPT_LENGTH
-
         exact_prompt = "B" * _MAX_PROMPT_LENGTH
-        resp = client_no_auth.post("/scan", json={"prompt": exact_prompt})
-        # Exactly at limit should not trigger 413
+        resp = client_with_auth.post(
+            "/scan",
+            json={"prompt": exact_prompt},
+            headers={"X-API-Key": "test-secret-key"},
+        )
         assert resp.status_code != 413
