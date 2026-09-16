@@ -7,15 +7,18 @@ Endpoints
 ---------
 POST /scan    --  run all detectors against a prompt/response pair
 GET  /health  --  liveness check
-GET  /metrics  --  Prometheus metrics (internal)
+GET  /metrics --  Prometheus metrics (authenticated)
 
-Usage
------
-    uvicorn src.redteam.api.app:app --host 0.0.0.0 --port 8000
+Authentication
+--------------
+``REDTEAM_API_KEY`` is required for protected endpoints. The service fails
+closed when the secret is missing. Local development should set an explicit
+development-only key rather than relying on an anonymous production mode.
 """
 
 from __future__ import annotations
 
+import hmac
 import logging
 import os
 import time
@@ -25,12 +28,7 @@ from typing import Any
 import yaml
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
-from prometheus_client import (
-    CONTENT_TYPE_LATEST,
-    Counter,
-    Histogram,
-    generate_latest,
-)
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from pydantic import BaseModel, Field
 
 from redteam.detectors.embedding_similarity import EmbeddingSimilarityDetector
@@ -40,8 +38,9 @@ from redteam.output.sarif import findings_to_sarif
 
 logger = logging.getLogger(__name__)
 
-# ── Load config for rate limiting / input validation ───────────────────────────
-_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "..", "llm-security-config.yaml")
+_CONFIG_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "..", "..", "llm-security-config.yaml"
+)
 try:
     with open(_CONFIG_PATH) as _f:
         _config = yaml.safe_load(_f)
@@ -50,16 +49,12 @@ except FileNotFoundError:
 
 _RATE_LIMIT = _config.get("rate_limiting", {}).get("max_requests_per_minute", 60)
 _MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get("max_prompt_length_chars", 32768)
-
-# ── In-memory token-bucket rate limiter (per-IP, no external deps) ─────────────
 _request_log: dict[str, list[float]] = defaultdict(list)
 
 
 def _is_rate_limited(client_ip: str) -> bool:
-    """Return True if client_ip has exceeded _RATE_LIMIT requests in the last 60s."""
     now = time.time()
     window_start = now - 60.0
-    # Prune old entries
     _request_log[client_ip] = [ts for ts in _request_log[client_ip] if ts > window_start]
     if len(_request_log[client_ip]) >= _RATE_LIMIT:
         return True
@@ -67,16 +62,18 @@ def _is_rate_limited(client_ip: str) -> bool:
     return False
 
 
-# ── API Key authentication ─────────────────────────────────────────────────────
+# Authentication is fail-closed. An operator must explicitly configure a key,
+# including in local development. This avoids an accidental anonymous service
+# when a deployment forgets its secret.
 _API_KEY = os.environ.get("REDTEAM_API_KEY", "")
 
 
 def _check_api_key(request: Request) -> str | None:
-    """Validate API key if configured. Returns error message or None on success."""
+    """Return an error when authentication is missing or invalid."""
     if not _API_KEY:
-        return None  # Auth disabled, allow all
+        return "API authentication is not configured"
     provided = request.headers.get("X-API-Key", "")
-    if provided != _API_KEY:
+    if not provided or not hmac.compare_digest(provided, _API_KEY):
         return "Invalid or missing API key"
     return None
 
@@ -90,17 +87,9 @@ app = FastAPI(
 
 @app.exception_handler(Exception)
 async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Catch-all handler: log full details server-side, return generic message to client.
-
-    Deliberately omits traceback and exception text from the response body to
-    prevent information disclosure (CWE-209).
-    """
+    """Catch-all handler: log details server-side and return a generic error."""
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     return JSONResponse(status_code=500, content={"error": "internal error"})
-
-
-# ── Prometheus metrics ─────────────────────────────────────────────────────────
-# Use try/except to survive module reloads (e.g., during testing with importlib.reload).
 
 
 def _get_or_create_metric(cls, name, *args, **kwargs):
@@ -108,7 +97,6 @@ def _get_or_create_metric(cls, name, *args, **kwargs):
     try:
         return cls(name, *args, **kwargs)
     except ValueError:
-        # Already registered — retrieve the existing collector.
         from prometheus_client import REGISTRY as _REG
 
         collector = _REG._names_to_collectors.get(name)
@@ -117,12 +105,8 @@ def _get_or_create_metric(cls, name, *args, **kwargs):
         raise
 
 
-SCAN_REQUESTS = _get_or_create_metric(
-    Counter, "scan_requests_total", "Total /scan requests", ["status"]
-)
-FINDINGS_TOTAL = _get_or_create_metric(
-    Counter, "findings_total", "Findings by severity", ["severity"]
-)
+SCAN_REQUESTS = _get_or_create_metric(Counter, "scan_requests_total", "Total /scan requests", ["status"])
+FINDINGS_TOTAL = _get_or_create_metric(Counter, "findings_total", "Findings by severity", ["severity"])
 SCAN_LATENCY = _get_or_create_metric(
     Histogram,
     "scan_latency_seconds",
@@ -130,13 +114,11 @@ SCAN_LATENCY = _get_or_create_metric(
     buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
 )
 
-# ── Detector singletons ────────────────────────────────────────────────────────
 _pii_detector = PIILeakageDetector()
 _rag_detector = RAGPoisoningDetector()
 _emb_detector = EmbeddingSimilarityDetector()
 
 
-# ── Request / response models ──────────────────────────────────────────────────
 class ScanRequest(BaseModel):
     prompt: str = Field(..., description="The user prompt sent to the LLM.")
     response: str = Field("", description="The LLM response (optional).")
@@ -149,7 +131,7 @@ class ScanRequest(BaseModel):
 
 class Finding(BaseModel):
     rule_id: str
-    severity: str  # CRITICAL | HIGH | MEDIUM | LOW | NOTE
+    severity: str
     message: str
     detector: str
     owasp_llm_id: str = ""
@@ -159,11 +141,10 @@ class ScanResponse(BaseModel):
     scan_id: str
     findings: list[Finding]
     sarif: dict[str, Any]
-    blocked: bool  # True if any HIGH or CRITICAL finding present
+    blocked: bool
     duration_ms: float
 
 
-# ── Endpoints ──────────────────────────────────────────────────────────────────
 @app.get("/health")
 async def health() -> JSONResponse:
     """Liveness check. Returns 200 when service is ready."""
@@ -171,29 +152,23 @@ async def health() -> JSONResponse:
 
 
 @app.get("/metrics", include_in_schema=False)
-async def metrics() -> Response:
-    """Prometheus metrics scrape endpoint (internal network only)."""
+async def metrics(request: Request) -> Response:
+    """Prometheus metrics endpoint; authentication is required."""
+    auth_error = _check_api_key(request)
+    if auth_error:
+        raise HTTPException(status_code=401, detail=auth_error)
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.post("/scan", response_model=ScanResponse)
-async def scan(req: ScanRequest, request: Request, response: Response) -> ScanResponse:
-    """
-    Run all detectors against a prompt/response pair.
-
-    Returns a list of findings and a SARIF 2.1.0 document.
-    Sets ``blocked=True`` if any HIGH or CRITICAL finding is present.
-    """
+async def scan(req: ScanRequest, request: Request) -> ScanResponse:
+    """Run all detectors against a prompt/response pair."""
     import uuid
 
-    # ── Auth check ─────────────────────────────────────────────────────────
     auth_error = _check_api_key(request)
     if auth_error:
         raise HTTPException(status_code=401, detail=auth_error)
-    if not _API_KEY:
-        response.headers["X-Auth-Status"] = "disabled - set REDTEAM_API_KEY to enable"
 
-    # ── Rate limiting ──────────────────────────────────────────────────────
     client_ip = request.client.host if request.client else "unknown"
     if _is_rate_limited(client_ip):
         raise HTTPException(
@@ -201,7 +176,6 @@ async def scan(req: ScanRequest, request: Request, response: Response) -> ScanRe
             detail=f"Rate limit exceeded: max {_RATE_LIMIT} requests/minute",
         )
 
-    # ── Input length validation ────────────────────────────────────────────
     if len(req.prompt) > _MAX_PROMPT_LENGTH:
         raise HTTPException(
             status_code=413,
@@ -213,7 +187,6 @@ async def scan(req: ScanRequest, request: Request, response: Response) -> ScanRe
     all_findings: list[Finding] = []
 
     try:
-        # ── PII / secret leakage ───────────────────────────────────────────
         pii_results = _pii_detector.scan(req.prompt + "\n" + req.response)
         for r in pii_results:
             all_findings.append(
@@ -226,7 +199,6 @@ async def scan(req: ScanRequest, request: Request, response: Response) -> ScanRe
                 )
             )
 
-        # ── RAG poisoning ──────────────────────────────────────────────────
         if req.context_docs:
             rag_results = _rag_detector.scan(req.prompt, req.context_docs)
             for r in rag_results:
@@ -240,7 +212,6 @@ async def scan(req: ScanRequest, request: Request, response: Response) -> ScanRe
                     )
                 )
 
-        # ── Embedding similarity (prompt injection patterns) ───────────────
         emb_results = _emb_detector.scan(req.prompt)
         for r in emb_results:
             all_findings.append(
