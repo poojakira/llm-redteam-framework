@@ -87,11 +87,7 @@ def _normalise(text: str) -> str:
 def _f1(tp: int, fp: int, fn: int) -> float:
     precision = tp / (tp + fp) if (tp + fp) else 0.0
     recall = tp / (tp + fn) if (tp + fn) else 0.0
-    return (
-        2 * precision * recall / (precision + recall)
-        if (precision + recall)
-        else 0.0
-    )
+    return 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
 
 
 def run_ood_benchmark() -> dict[str, Any]:
@@ -113,9 +109,7 @@ def run_ood_benchmark() -> dict[str, Any]:
 
     fixtures: list[tuple[str, bool]] = [(t, True) for t in OOD_ADVERSARIAL]
     fixtures += [(t, False) for t in OOD_BENIGN]
-    exact_overlap = sorted(
-        text for text, _ in fixtures if _normalise(text) in train_normalised
-    )
+    exact_overlap = sorted(text for text, _ in fixtures if _normalise(text) in train_normalised)
 
     y_true = [label for _, label in fixtures]
     started = time.perf_counter()
