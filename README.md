@@ -1,5 +1,7 @@
 # LLM Red Team Framework
 
+**Repository owner & maintainer:** Pooja Kiran ([@poojakira](https://github.com/poojakira)) — I review changes, verify public claims, and maintain the repository record.
+
 Offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares random, grouped-template, and out-of-distribution evaluation.
 
 **Generalization result first:** on the committed novel-phrasing out-of-distribution benchmark, the detector measures **F1 = 0.83** (precision 0.79, recall 0.88). The same model reports **F1 = 0.97** on the default grouped-template split and **F1 = 1.0** on a random in-distribution split. The gap is the main finding: surface-pattern detectors can look much stronger when the evaluation distribution remains close to the generated training corpus.
