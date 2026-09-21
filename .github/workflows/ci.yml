@@ -34,6 +34,7 @@ jobs:
       - name: Lint
         run: |
           ruff check .
+          ruff format --diff . || true
           ruff format --check .
 
       - name: Type check
