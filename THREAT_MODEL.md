@@ -145,11 +145,7 @@ Encoding attacks transform malicious payloads to bypass text-pattern detectors.
 - **Risk**: Attacker overrides system instructions via direct or indirect injection
 - **Framework Coverage**: `direct_override`, `role_switch`, `context_escape`, `obfuscation` generators
 - **Detectors**: `EmbeddingSimilarityDetector`, TF-IDF classifier
-- **Residual Risk**: Novel semantic attacks not captured by n-gram patterns. Measured
-  degradation on natural-language paraphrases with no structural tells:
-  **F1 = 0.83** (precision 0.79, recall 0.88) versus **0.97** on the in-distribution
-  grouped split — a reproducible ~14-point drop. Reproduce with
-  `python benchmarks/ood_novel_phrasings.py` (pinned in `tests/test_ood_benchmark.py`).
+- **Residual Risk**: Novel semantic attacks not captured by n-gram patterns. Natural-language paraphrases with no structural tells are measured by `benchmarks/ood_novel_phrasings.py`. The benchmark now reuses the same grouped-split detector as the headline evaluation and checks for exact train/fixture overlap. Treat the result as a 50-fixture regression measurement, not a population-level OOD estimate.
 - **Mitigation**: Defense-in-depth — input classification + output filtering + privilege separation
 
 ### 4.2 LLM02 — Insecure Output Handling
