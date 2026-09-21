@@ -2,13 +2,11 @@
 
 **Repository owner & maintainer:** Pooja Kiran ([@poojakira](https://github.com/poojakira)) — I lead the design, implementation, validation, documentation, and maintenance of this repository, and I verify public claims against repository evidence.
 
-Offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares random, grouped-template, and out-of-distribution evaluation.
+Offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares grouped-template and out-of-distribution evaluation.
 
-**Generalization result first:** on the committed novel-phrasing out-of-distribution benchmark, the detector measures **F1 = 0.83** (precision 0.79, recall 0.88). The same model reports **F1 = 0.97** on the default grouped-template split and **F1 = 1.0** on a random in-distribution split. The gap is the main finding: surface-pattern detectors can look much stronger when the evaluation distribution remains close to the generated training corpus.
+The default grouped split (seed 42) measures **F1 = 0.97** on held-out synthetic template IDs. The novel-phrasing OOD benchmark now evaluates the **same detector trained on the same grouped training split** and performs an exact-overlap check against its 50 hand-authored fixtures. Run `python benchmarks/ood_novel_phrasings.py` for the current measured OOD result. The former 0.83 value came from a different training configuration and is no longer used as a directly comparable headline.
 
-Reproduce the OOD result with `python benchmarks/ood_novel_phrasings.py`; the expected value is pinned in `tests/test_ood_benchmark.py`.
-
-> The InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` score about 0.98, but they retain canonical attack markers. They are useful regression fixtures, not evidence of broad real-world generalization.
+> The InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` retain canonical attack markers. They are useful regression fixtures, not evidence of broad real-world generalization. The novel-phrasing suite is a harder regression measurement, but it is still a small hand-authored fixture set rather than a population-level estimate.
 
 ---
 
