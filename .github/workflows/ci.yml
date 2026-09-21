@@ -100,6 +100,9 @@ jobs:
       - name: Run external validation
         run: python benchmarks/external_validation.py
 
+      - name: Run comparable OOD benchmark
+        run: python benchmarks/ood_novel_phrasings.py
+
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
