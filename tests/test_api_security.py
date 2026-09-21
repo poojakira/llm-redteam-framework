@@ -68,7 +68,9 @@ class TestRateLimiter:
 class TestAPIKeyAuth:
     def test_rejects_wrong_key(self, client_with_auth):
         resp = client_with_auth.post(
-            "/scan", json={"prompt": "test prompt"}, headers={"X-API-Key": "wrong-key"}
+            "/scan",
+            json={"prompt": "test prompt"},
+            headers={"X-API-Key": "wrong-key"},
         )
         assert resp.status_code == 401
 
@@ -90,9 +92,12 @@ class TestAPIKeyAuth:
 
     def test_metrics_requires_auth(self, client_with_auth):
         assert client_with_auth.get("/metrics").status_code == 401
-        assert client_with_auth.get(
-            "/metrics", headers={"X-API-Key": "test-secret-key"}
-        ).status_code == 200
+        assert (
+            client_with_auth.get(
+                "/metrics", headers={"X-API-Key": "test-secret-key"}
+            ).status_code
+            == 200
+        )
 
 
 class TestInputLengthValidation:
