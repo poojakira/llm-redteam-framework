@@ -105,8 +105,12 @@ def _get_or_create_metric(cls, name, *args, **kwargs):
         raise
 
 
-SCAN_REQUESTS = _get_or_create_metric(Counter, "scan_requests_total", "Total /scan requests", ["status"])
-FINDINGS_TOTAL = _get_or_create_metric(Counter, "findings_total", "Findings by severity", ["severity"])
+SCAN_REQUESTS = _get_or_create_metric(
+    Counter, "scan_requests_total", "Total /scan requests", ["status"]
+)
+FINDINGS_TOTAL = _get_or_create_metric(
+    Counter, "findings_total", "Findings by severity", ["severity"]
+)
 SCAN_LATENCY = _get_or_create_metric(
     Histogram,
     "scan_latency_seconds",
