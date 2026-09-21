@@ -2,9 +2,10 @@
 
 Offline evaluation harness for prompt-injection detectors. Generates adversarial corpora across six attack categories (OWASP LLM01/06/07), trains a baseline TF-IDF + Logistic Regression classifier, and measures held-out performance using grouped template splits that prevent data leakage.
 
-Key result: with the default grouped split (seed=42), the detector achieves **F1 = 0.97** on held-out templates it was never trained on, and **F1 = 1.0** on a random (in-distribution) split. On a dedicated **out-of-distribution benchmark of natural-language paraphrases that deliberately omit the structural tells** the model keys on ("ignore previous instructions", bracketed system tags, encoded payloads), performance drops to a reproducibly measured **F1 = 0.83** (precision 0.79, recall 0.88). That ~14-point drop is the point of this repository: it quantifies exactly how much of a pattern-matching detector's headline score is memorised surface structure rather than genuine generalization. Reproduce with `python benchmarks/ood_novel_phrasings.py` (value pinned in `tests/test_ood_benchmark.py`).
+Key result: the default grouped split (seed=42) measures **F1 = 0.97** on held-out synthetic template IDs. A separate natural-language OOD fixture suite is intentionally harder. The OOD benchmark now evaluates **the same detector trained on the same grouped training split**, with a zero-exact-overlap check against its 50 hand-authored fixtures. Run `python benchmarks/ood_novel_phrasings.py` for the current measured OOD result; do not reuse the former 0.83 figure, which came from a different training configuration.
 
-> Note on "external benchmark" fixtures: the InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` score ~0.98, but they retain canonical attack markers and are therefore *not* a true OOD test. The `ood_novel_phrasings` benchmark above is the honest generalization measurement.
+
+> Note on "external benchmark" fixtures: the InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` score ~0.98, but they retain canonical attack markers and are therefore *not* a true OOD test. The `ood_novel_phrasings` benchmark is the harder regression measurement, but it is still a small hand-authored fixture suite rather than a population-level generalization estimate.
 
 ---
 
