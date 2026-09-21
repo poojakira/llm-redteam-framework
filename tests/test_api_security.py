@@ -56,7 +56,11 @@ class TestRateLimiter:
         headers = {"X-API-Key": "test-secret-key"}
         for _ in range(_RATE_LIMIT):
             client_with_auth.post("/scan", json={"prompt": "test"}, headers=headers)
-        resp = client_with_auth.post("/scan", json={"prompt": "one more"}, headers=headers)
+        resp = client_with_auth.post(
+            "/scan",
+            json={"prompt": "one more"},
+            headers=headers,
+        )
         assert resp.status_code == 429
         assert "Rate limit exceeded" in resp.json()["detail"]
 
@@ -74,7 +78,9 @@ class TestAPIKeyAuth:
 
     def test_accepts_correct_key(self, client_with_auth):
         resp = client_with_auth.post(
-            "/scan", json={"prompt": "test prompt"}, headers={"X-API-Key": "test-secret-key"}
+            "/scan",
+            json={"prompt": "test prompt"},
+            headers={"X-API-Key": "test-secret-key"},
         )
         assert resp.status_code != 401
 
