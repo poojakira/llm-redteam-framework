@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture(autouse=True)
 def _reset_rate_limiter():
     from redteam.api.app import _request_log
+
     _request_log.clear()
     yield
     _request_log.clear()
@@ -18,6 +19,7 @@ def _reset_rate_limiter():
 def client_no_auth():
     """TestClient with the production secret missing; protected calls fail closed."""
     import redteam.api.app as app_module
+
     original_key = app_module._API_KEY
     app_module._API_KEY = ""
     try:
@@ -43,7 +45,8 @@ class TestRateLimiter:
     def test_allows_requests_within_limit(self, client_with_auth):
         for _ in range(3):
             resp = client_with_auth.post(
-                "/scan", json={"prompt": "Hello, how are you?"},
+                "/scan",
+                json={"prompt": "Hello, how are you?"},
                 headers={"X-API-Key": "test-secret-key"},
             )
             assert resp.status_code != 429
