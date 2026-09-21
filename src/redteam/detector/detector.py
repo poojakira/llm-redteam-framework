@@ -172,7 +172,7 @@ class RedTeamDetector:
 
         Args:
             path: Path to the pickle file.
-            trusted: If True, skip integrity check (for trusted sources only).
+            trusted: Must be True to permit pickle deserialization after the checksum is verified.
                      Default False for safety.
 
         Raises:
