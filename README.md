@@ -1,10 +1,12 @@
 # LLM Red Team Framework
 
-Offline evaluation harness for prompt-injection detectors. Generates adversarial corpora across six attack categories (OWASP LLM01/06/07), trains a baseline TF-IDF + Logistic Regression classifier, and measures held-out performance using grouped template splits that prevent data leakage.
+Offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares random, grouped-template, and out-of-distribution evaluation.
 
-Key result: with the default grouped split (seed=42), the detector achieves **F1 = 0.97** on held-out templates it was never trained on, and **F1 = 1.0** on a random (in-distribution) split. On a dedicated **out-of-distribution benchmark of natural-language paraphrases that deliberately omit the structural tells** the model keys on ("ignore previous instructions", bracketed system tags, encoded payloads), performance drops to a reproducibly measured **F1 = 0.83** (precision 0.79, recall 0.88). That ~14-point drop is the point of this repository: it quantifies exactly how much of a pattern-matching detector's headline score is memorised surface structure rather than genuine generalization. Reproduce with `python benchmarks/ood_novel_phrasings.py` (value pinned in `tests/test_ood_benchmark.py`).
+**Generalization result first:** on the committed novel-phrasing out-of-distribution benchmark, the detector measures **F1 = 0.83** (precision 0.79, recall 0.88). The same model reports **F1 = 0.97** on the default grouped-template split and **F1 = 1.0** on a random in-distribution split. The gap is the main finding: surface-pattern detectors can look much stronger when the evaluation distribution remains close to the generated training corpus.
 
-> Note on "external benchmark" fixtures: the InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` score ~0.98, but they retain canonical attack markers and are therefore *not* a true OOD test. The `ood_novel_phrasings` benchmark above is the honest generalization measurement.
+Reproduce the OOD result with `python benchmarks/ood_novel_phrasings.py`; the expected value is pinned in `tests/test_ood_benchmark.py`.
+
+> The InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` score about 0.98, but they retain canonical attack markers. They are useful regression fixtures, not evidence of broad real-world generalization.
 
 ---
 
@@ -16,7 +18,7 @@ Generates adversarial prompts across six attack categories mapped to the OWASP L
 
 ## Why This Repository Exists
 
-Prompt injection is ranked #1 in the OWASP LLM Top 10 (LLM01). Yet most teams either ship no detection at all, or ship a detector they have never stress-tested against systematic adversarial inputs.
+Prompt injection is a core risk in the OWASP guidance for LLM applications. This repository focuses on whether a detector remains useful when evaluation moves beyond the structures seen during training.
 
 This repository answers:
 
@@ -113,7 +115,7 @@ Here is how data moves through the system from start to finish:
 
 **Why TF-IDF + Logistic Regression instead of a transformer?**
 
-The goal is measuring detector methodology, not building the best possible detector. A simple model trains in seconds with zero GPU requirements. It runs in any CI environment. The grouped-split F1 of 0.97 looks strong, but external benchmark fixtures (novel phrasings never seen during training) show the ceiling drops - this demonstrates the fundamental limitation of pattern-matching approaches and motivates defense-in-depth.
+The goal is measuring detector methodology, not building the best possible detector. A simple model trains in seconds with zero GPU requirements. It runs in any CI environment. The grouped-split F1 of 0.97 looks strong, but the dedicated novel-phrasing OOD benchmark falls to 0.83. That difference is the more important result because it exposes the generalization limit of the pattern-matching baseline.
 
 **Why offline evaluation instead of probing a live LLM?**
 
