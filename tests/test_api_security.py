@@ -32,6 +32,7 @@ def client_no_auth():
 @pytest.fixture()
 def client_with_auth():
     import redteam.api.app as app_module
+
     original_key = app_module._API_KEY
     app_module._API_KEY = "test-secret-key"
     try:
@@ -53,6 +54,7 @@ class TestRateLimiter:
 
     def test_blocks_after_exceeding_limit(self, client_with_auth):
         from redteam.api.app import _RATE_LIMIT
+
         headers = {"X-API-Key": "test-secret-key"}
         for _ in range(_RATE_LIMIT):
             client_with_auth.post("/scan", json={"prompt": "test"}, headers=headers)
@@ -93,9 +95,7 @@ class TestAPIKeyAuth:
     def test_metrics_requires_auth(self, client_with_auth):
         assert client_with_auth.get("/metrics").status_code == 401
         assert (
-            client_with_auth.get(
-                "/metrics", headers={"X-API-Key": "test-secret-key"}
-            ).status_code
+            client_with_auth.get("/metrics", headers={"X-API-Key": "test-secret-key"}).status_code
             == 200
         )
 
@@ -103,6 +103,7 @@ class TestAPIKeyAuth:
 class TestInputLengthValidation:
     def test_rejects_oversized_input(self, client_with_auth):
         from redteam.api.app import _MAX_PROMPT_LENGTH
+
         oversized_prompt = "A" * (_MAX_PROMPT_LENGTH + 1)
         resp = client_with_auth.post(
             "/scan",
@@ -121,6 +122,7 @@ class TestInputLengthValidation:
 
     def test_accepts_prompt_at_exact_limit(self, client_with_auth):
         from redteam.api.app import _MAX_PROMPT_LENGTH
+
         exact_prompt = "B" * _MAX_PROMPT_LENGTH
         resp = client_with_auth.post(
             "/scan",
