@@ -38,9 +38,7 @@ from redteam.output.sarif import findings_to_sarif
 
 logger = logging.getLogger(__name__)
 
-_CONFIG_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "..", "llm-security-config.yaml"
-)
+_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "..", "llm-security-config.yaml")
 try:
     with open(_CONFIG_PATH) as _f:
         _config = yaml.safe_load(_f)
@@ -48,18 +46,14 @@ except FileNotFoundError:
     _config = {}
 
 _RATE_LIMIT = _config.get("rate_limiting", {}).get("max_requests_per_minute", 60)
-_MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get(
-    "max_prompt_length_chars", 32768
-)
+_MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get("max_prompt_length_chars", 32768)
 _request_log: dict[str, list[float]] = defaultdict(list)
 
 
 def _is_rate_limited(client_ip: str) -> bool:
     now = time.time()
     window_start = now - 60.0
-    _request_log[client_ip] = [
-        ts for ts in _request_log[client_ip] if ts > window_start
-    ]
+    _request_log[client_ip] = [ts for ts in _request_log[client_ip] if ts > window_start]
     if len(_request_log[client_ip]) >= _RATE_LIMIT:
         return True
     _request_log[client_ip].append(now)
@@ -188,8 +182,7 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
         raise HTTPException(
             status_code=413,
             detail=(
-                f"Prompt too long: {len(req.prompt)} chars exceeds max "
-                f"{_MAX_PROMPT_LENGTH}"
+                f"Prompt too long: {len(req.prompt)} chars exceeds max " f"{_MAX_PROMPT_LENGTH}"
             ),
         )
 
