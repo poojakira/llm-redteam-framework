@@ -87,7 +87,11 @@ def _normalise(text: str) -> str:
 def _f1(tp: int, fp: int, fn: int) -> float:
     precision = tp / (tp + fp) if (tp + fp) else 0.0
     recall = tp / (tp + fn) if (tp + fn) else 0.0
-    return 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
+    return (
+        2 * precision * recall / (precision + recall)
+        if (precision + recall)
+        else 0.0
+    )
 
 
 def run_ood_benchmark() -> dict[str, Any]:
