@@ -90,9 +90,7 @@ app = FastAPI(
 
 
 @app.exception_handler(Exception)
-async def _unhandled_exception_handler(
-    request: Request, exc: Exception
-) -> JSONResponse:
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all handler: log details server-side and return a generic error."""
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     return JSONResponse(status_code=500, content={"error": "internal error"})
@@ -136,9 +134,7 @@ class ScanRequest(BaseModel):
         default_factory=list,
         description="RAG context documents injected alongside the prompt.",
     )
-    session_id: str = Field(
-        "", description="Optional session identifier for canary tracking."
-    )
+    session_id: str = Field("", description="Optional session identifier for canary tracking.")
 
 
 class Finding(BaseModel):
