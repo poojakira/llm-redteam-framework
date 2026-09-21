@@ -48,14 +48,18 @@ except FileNotFoundError:
     _config = {}
 
 _RATE_LIMIT = _config.get("rate_limiting", {}).get("max_requests_per_minute", 60)
-_MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get("max_prompt_length_chars", 32768)
+_MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get(
+    "max_prompt_length_chars", 32768
+)
 _request_log: dict[str, list[float]] = defaultdict(list)
 
 
 def _is_rate_limited(client_ip: str) -> bool:
     now = time.time()
     window_start = now - 60.0
-    _request_log[client_ip] = [ts for ts in _request_log[client_ip] if ts > window_start]
+    _request_log[client_ip] = [
+        ts for ts in _request_log[client_ip] if ts > window_start
+    ]
     if len(_request_log[client_ip]) >= _RATE_LIMIT:
         return True
     _request_log[client_ip].append(now)
@@ -86,7 +90,9 @@ app = FastAPI(
 
 
 @app.exception_handler(Exception)
-async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+async def _unhandled_exception_handler(
+    request: Request, exc: Exception
+) -> JSONResponse:
     """Catch-all handler: log details server-side and return a generic error."""
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     return JSONResponse(status_code=500, content={"error": "internal error"})
@@ -130,7 +136,9 @@ class ScanRequest(BaseModel):
         default_factory=list,
         description="RAG context documents injected alongside the prompt.",
     )
-    session_id: str = Field("", description="Optional session identifier for canary tracking.")
+    session_id: str = Field(
+        "", description="Optional session identifier for canary tracking."
+    )
 
 
 class Finding(BaseModel):
@@ -183,7 +191,10 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
     if len(req.prompt) > _MAX_PROMPT_LENGTH:
         raise HTTPException(
             status_code=413,
-            detail=f"Prompt too long: {len(req.prompt)} chars exceeds max {_MAX_PROMPT_LENGTH}",
+            detail=(
+                f"Prompt too long: {len(req.prompt)} chars exceeds max "
+                f"{_MAX_PROMPT_LENGTH}"
+            ),
         )
 
     t0 = time.perf_counter()
