@@ -66,6 +66,9 @@ def _is_rate_limited(client_ip: str) -> bool:
 # including in local development. This avoids an accidental anonymous service
 # when a deployment forgets its secret.
 _API_KEY = os.environ.get("REDTEAM_API_KEY", "")
+_ENFORCEMENT_MODE = os.environ.get("REDTEAM_ENFORCEMENT_MODE", "shadow").strip().lower()
+if _ENFORCEMENT_MODE not in {"shadow", "block"}:
+    raise RuntimeError("REDTEAM_ENFORCEMENT_MODE must be 'shadow' or 'block'")
 
 
 def _check_api_key(request: Request) -> str | None:
@@ -146,7 +149,9 @@ class ScanResponse(BaseModel):
     scan_id: str
     findings: list[Finding]
     sarif: dict[str, Any]
+    would_block: bool
     blocked: bool
+    enforcement_mode: str
     duration_ms: float
 
 
@@ -241,7 +246,8 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
                 )
             )
 
-        blocked = any(f.severity in ("HIGH", "CRITICAL") for f in all_findings)
+        would_block = any(f.severity in ("HIGH", "CRITICAL") for f in all_findings)
+        blocked = would_block and _ENFORCEMENT_MODE == "block"
         sarif_doc = findings_to_sarif(scan_id, [f.model_dump() for f in all_findings])
         duration_ms = (time.perf_counter() - t0) * 1000
 
@@ -254,7 +260,9 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
             scan_id=scan_id,
             findings=all_findings,
             sarif=sarif_doc,
+            would_block=would_block,
             blocked=blocked,
+            enforcement_mode=_ENFORCEMENT_MODE,
             duration_ms=round(duration_ms, 2),
         )
 
