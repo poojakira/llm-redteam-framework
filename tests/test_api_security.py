@@ -130,3 +130,16 @@ class TestInputLengthValidation:
             headers={"X-API-Key": "test-secret-key"},
         )
         assert resp.status_code != 413
+
+    def test_rejects_oversized_total_context(self, client_with_auth):
+        from redteam.api.app import _MAX_TOTAL_INPUT_CHARS
+
+        resp = client_with_auth.post(
+            "/scan",
+            json={
+                "prompt": "scan",
+                "context_docs": ["A" * (_MAX_TOTAL_INPUT_CHARS + 1)],
+            },
+            headers={"X-API-Key": "test-secret-key"},
+        )
+        assert resp.status_code == 413
