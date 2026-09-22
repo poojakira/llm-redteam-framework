@@ -48,8 +48,8 @@ tells, run the OOD benchmark:
 python benchmarks/ood_novel_phrasings.py
 ```
 
-Expected (deterministic): precision 0.7857, recall 0.88, **F1 0.8302**, accuracy
-0.82 — a reproducible ~14-point drop from the grouped-split F1 of 0.97. The
+Current deterministic result: precision 0.5897, recall 0.92, **F1 0.7188**, accuracy
+0.64 — a reproducible ~25-point drop from the grouped reference F1 of 0.9714. The
 result is written to `benchmarks/results/ood_novel_phrasings_results.json` and
 pinned in `tests/test_ood_benchmark.py`.
 
