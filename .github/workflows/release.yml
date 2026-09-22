@@ -7,7 +7,9 @@ on:
 
 permissions:
   contents: write
-  id-token: write  # Required for Sigstore OIDC
+  id-token: write
+  packages: write
+  attestations: write
 
 jobs:
   build:
@@ -26,10 +28,23 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install build dependencies
+      - name: Install release dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine sigstore cyclonedx-bom
+          pip install -e ".[dev]"
+          pip install build twine sigstore cyclonedx-bom pip-audit
+
+      - name: Run release gates
+        env:
+          REDTEAM_API_KEY: release-validation-key-at-least-32-characters
+          REDTEAM_ENFORCEMENT_MODE: shadow
+        run: |
+          ruff check .
+          ruff format --check .
+          mypy src/redteam/ --ignore-missing-imports
+          python -m pytest tests/ --cov=redteam --cov-fail-under=90
+          pip-audit --skip-editable --progress-spinner=off
+          python benchmarks/ood_novel_phrasings.py
 
       - name: Build wheel and sdist
         run: python -m build
@@ -54,7 +69,7 @@ jobs:
           for f in dist/*.whl dist/*.tar.gz sbom.json; do
             sigstore verify identity \
               --cert-oidc-issuer https://token.actions.githubusercontent.com \
-              --cert-identity-regexp ".*" \
+              --cert-identity "https://github.com/${{ github.repository }}/.github/workflows/release.yml@${{ github.ref }}" \
               "$f"
           done
 
@@ -74,6 +89,36 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload dist/*.whl dist/*.tar.gz
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push service image
+        id: image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:latest
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+
+      - name: Attest service image provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.image.outputs.digest }}
+          push-to-registry: true
 
       - name: Upload SBOM as artifact
         uses: actions/upload-artifact@v4
