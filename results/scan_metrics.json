@@ -1,10 +1,10 @@
 {
   "_comment": "Consolidated headline metrics. Every value here is reproducible from a committed benchmark artifact and pinned by a test. Do not hand-edit; regenerate from the benchmarks.",
-  "grouped_split_f1": 0.97,
+  "grouped_split_f1": 0.9714,
   "random_split_f1": 1.0,
-  "ood_novel_phrasings_f1": 0.8302,
-  "ood_novel_phrasings_precision": 0.7857,
-  "ood_novel_phrasings_recall": 0.88,
+  "ood_novel_phrasings_f1": 0.7188,
+  "ood_novel_phrasings_precision": 0.5897,
+  "ood_novel_phrasings_recall": 0.92,
   "external_injection_bench_f1": 0.9796,
   "external_jailbreak_bench_f1": 0.9804,
   "eval_method": "grouped template split (seed=42) for headline; dedicated OOD natural-language paraphrase benchmark for generalization",
@@ -13,5 +13,5 @@
     "ood_novel_phrasings_f1": "benchmarks/results/ood_novel_phrasings_results.json (python benchmarks/ood_novel_phrasings.py)",
     "external_*": "benchmarks/results/external_validation_results.json (python benchmarks/external_validation.py)"
   },
-  "note": "OOD F1=0.83 is the operationally relevant generalization number; the ~14-point drop from the 0.97 grouped-split score quantifies how much of the headline is memorized surface structure. External InjectionBench/JailbreakBench-style fixtures (~0.98) retain canonical attack markers and are NOT a true OOD test."
+  "note": "OOD F1=0.7188 is the current same-detector regression result; the ~25-point drop from the 0.9714 grouped-split score quantifies how much of the headline is memorized surface structure. External InjectionBench/JailbreakBench-style fixtures (~0.98) retain canonical attack markers and are NOT a true OOD test."
 }
