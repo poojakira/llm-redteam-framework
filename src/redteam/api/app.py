@@ -18,6 +18,8 @@ development-only key rather than relying on an anonymous production mode.
 
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import hmac
 import logging
 import os
@@ -30,6 +32,7 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
 from redteam.detectors.embedding_similarity import EmbeddingSimilarityDetector
 from redteam.detectors.pii_leakage import PIILeakageDetector
@@ -50,6 +53,13 @@ _MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get("max_prompt_length_cha
 _MAX_CONTEXT_DOCS = _config.get("rate_limiting", {}).get("max_context_documents", 64)
 _MAX_TOTAL_INPUT_CHARS = _config.get("rate_limiting", {}).get("max_total_input_chars", 131072)
 _request_log: dict[str, list[float]] = defaultdict(list)
+_SCAN_TIMEOUT_SECONDS = float(os.environ.get("REDTEAM_SCAN_TIMEOUT_SECONDS", "30"))
+_MAX_CONCURRENT_SCANS = int(os.environ.get("REDTEAM_MAX_CONCURRENT_SCANS", "8"))
+if _SCAN_TIMEOUT_SECONDS <= 0:
+    raise RuntimeError("REDTEAM_SCAN_TIMEOUT_SECONDS must be positive")
+if _MAX_CONCURRENT_SCANS < 1 or _MAX_CONCURRENT_SCANS > 128:
+    raise RuntimeError("REDTEAM_MAX_CONCURRENT_SCANS must be between 1 and 128")
+_scan_slots = asyncio.Semaphore(_MAX_CONCURRENT_SCANS)
 
 
 def _is_rate_limited(client_ip: str) -> bool:
@@ -73,8 +83,8 @@ if _ENFORCEMENT_MODE not in {"shadow", "block"}:
 
 def _check_api_key(request: Request) -> str | None:
     """Return an error when authentication is missing or invalid."""
-    if not _API_KEY:
-        return "API authentication is not configured"
+    if len(_API_KEY) < 32:
+        return "API authentication is not configured with a sufficiently strong key"
     provided = request.headers.get("X-API-Key", "")
     if not provided or not hmac.compare_digest(provided, _API_KEY):
         return "Invalid or missing API key"
@@ -155,10 +165,63 @@ class ScanResponse(BaseModel):
     duration_ms: float
 
 
+def _run_detectors(req: ScanRequest) -> list[Finding]:
+    """Execute synchronous detector work away from the async event loop."""
+    findings: list[Finding] = []
+
+    for r in _pii_detector.scan(req.prompt + "\n" + req.response):
+        findings.append(
+            Finding(
+                rule_id=r["rule_id"],
+                severity=r["severity"],
+                message=r["message"],
+                detector="pii_leakage",
+                owasp_llm_id="LLM06",
+            )
+        )
+
+    if req.context_docs:
+        for r in _rag_detector.scan(req.prompt, req.context_docs):
+            findings.append(
+                Finding(
+                    rule_id=r["rule_id"],
+                    severity=r["severity"],
+                    message=r["message"],
+                    detector="rag_poisoning",
+                    owasp_llm_id="LLM07",
+                )
+            )
+
+    for r in _emb_detector.scan(req.prompt):
+        findings.append(
+            Finding(
+                rule_id=r["rule_id"],
+                severity=r["severity"],
+                message=r["message"],
+                detector="embedding_similarity",
+                owasp_llm_id="LLM01",
+            )
+        )
+
+    return findings
+
+
 @app.get("/health")
 async def health() -> JSONResponse:
-    """Liveness check. Returns 200 when service is ready."""
+    """Liveness check."""
     return JSONResponse({"status": "ok", "service": "llm-redteam-framework"})
+
+
+@app.get("/ready")
+async def ready() -> dict[str, str]:
+    """Readiness fails closed until production authentication is configured."""
+    if len(_API_KEY) < 32:
+        raise HTTPException(status_code=503, detail="REDTEAM_API_KEY must be at least 32 characters")
+    return {
+        "status": "ready",
+        "max_concurrent_scans": str(_MAX_CONCURRENT_SCANS),
+        "scan_timeout_seconds": str(_SCAN_TIMEOUT_SECONDS),
+    }
 
 
 @app.get("/metrics", include_in_schema=False)
@@ -179,8 +242,8 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
     if auth_error:
         raise HTTPException(status_code=401, detail=auth_error)
 
-    client_ip = request.client.host if request.client else "unknown"
-    if _is_rate_limited(client_ip):
+    rate_key = hashlib.sha256(_API_KEY.encode("utf-8")).hexdigest()[:24]
+    if _is_rate_limited(rate_key):
         raise HTTPException(
             status_code=429,
             detail=f"Rate limit exceeded: max {_RATE_LIMIT} requests/minute",
@@ -209,41 +272,10 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
     all_findings: list[Finding] = []
 
     try:
-        pii_results = _pii_detector.scan(req.prompt + "\n" + req.response)
-        for r in pii_results:
-            all_findings.append(
-                Finding(
-                    rule_id=r["rule_id"],
-                    severity=r["severity"],
-                    message=r["message"],
-                    detector="pii_leakage",
-                    owasp_llm_id="LLM06",
-                )
-            )
-
-        if req.context_docs:
-            rag_results = _rag_detector.scan(req.prompt, req.context_docs)
-            for r in rag_results:
-                all_findings.append(
-                    Finding(
-                        rule_id=r["rule_id"],
-                        severity=r["severity"],
-                        message=r["message"],
-                        detector="rag_poisoning",
-                        owasp_llm_id="LLM07",
-                    )
-                )
-
-        emb_results = _emb_detector.scan(req.prompt)
-        for r in emb_results:
-            all_findings.append(
-                Finding(
-                    rule_id=r["rule_id"],
-                    severity=r["severity"],
-                    message=r["message"],
-                    detector="embedding_similarity",
-                    owasp_llm_id="LLM01",
-                )
+        async with _scan_slots:
+            all_findings = await asyncio.wait_for(
+                run_in_threadpool(_run_detectors, req),
+                timeout=_SCAN_TIMEOUT_SECONDS,
             )
 
         would_block = any(f.severity in ("HIGH", "CRITICAL") for f in all_findings)
@@ -266,6 +298,9 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
             duration_ms=round(duration_ms, 2),
         )
 
+    except asyncio.TimeoutError as exc:
+        SCAN_REQUESTS.labels(status="timeout").inc()
+        raise HTTPException(status_code=504, detail="Scan timed out") from exc
     except Exception as exc:  # noqa: BLE001
         SCAN_REQUESTS.labels(status="error").inc()
         logger.exception("Scan error for scan_id=%s", scan_id)
