@@ -28,6 +28,7 @@ embeddings = ["sentence-transformers>=2.2"]
 
 [project.scripts]
 redteam-eval = "redteam.eval.harness:main"
+llm-redteam-scan = "redteam.cli.scan:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
