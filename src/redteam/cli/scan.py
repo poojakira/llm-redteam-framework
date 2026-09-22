@@ -160,6 +160,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Run the built-in demonstration corpus explicitly. Cannot be combined with --input.",
     )
     parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="Run the built-in demonstration corpus. Mutually exclusive with --input.",
+    )
+    parser.add_argument(
         "--output-sarif",
         metavar="SARIF_FILE",
         default="results/scan.sarif",
@@ -221,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Convert to SARIF
     scan_id = str(uuid.uuid4())
-    artifact_uri = args.input if (args.input and not is_demo) else "demo://sample-corpus"
+    artifact_uri = args.input if not is_demo else "demo://sample-corpus"
     sarif_doc = findings_to_sarif(
         scan_id=scan_id,
         findings=findings,
