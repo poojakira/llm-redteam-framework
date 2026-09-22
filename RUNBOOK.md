@@ -58,6 +58,7 @@ pinned in `tests/test_ood_benchmark.py`.
 ```bash
 # Protected endpoints fail closed unless REDTEAM_API_KEY is configured.
 export REDTEAM_API_KEY="$(openssl rand -hex 32)"
+export REDTEAM_ENFORCEMENT_MODE=shadow
 uvicorn redteam.api.app:app --host 0.0.0.0 --port 8000
 
 # Health check remains unauthenticated for orchestration probes.
@@ -69,6 +70,13 @@ curl -X POST http://localhost:8000/scan \
   -H "X-API-Key: your-key-here" \
   -d '{"prompt": "Test prompt"}'
 ```
+
+### Enforcement mode
+
+`REDTEAM_ENFORCEMENT_MODE=shadow` is the default and recommended rollout
+mode. A HIGH/CRITICAL finding sets `would_block=true` while `blocked=false`.
+Use `REDTEAM_ENFORCEMENT_MODE=block` only after representative traffic
+calibration demonstrates an acceptable false-positive cost for the deployment.
 
 ### Security Configuration
 
@@ -154,7 +162,7 @@ pytest tests/ -v
 | F1 lower than expected | Random split leaks templates | Use default `--split-mode grouped` |
 | Non-deterministic results | Unset seed | Pass `--seed` and `--corpus-seed` |
 | `uvicorn: command not found` | Uvicorn not installed | Run `pip install -e .` (includes uvicorn) |
-| 401 on /scan | API key auth enabled | Set `X-API-Key` header or unset `REDTEAM_API_KEY` env var |
+| 401 on /scan | Missing/invalid API key or server secret | Configure `REDTEAM_API_KEY` and send matching `X-API-Key` |
 | 429 on /scan | Rate limit exceeded | Wait 60s or adjust `max_requests_per_minute` in config |
 | 413 on /scan | Prompt too long | Reduce prompt length or adjust `max_prompt_length_chars` in config |
 
