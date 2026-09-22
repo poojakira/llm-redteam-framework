@@ -12,8 +12,8 @@ Input format (JSONL  --  one JSON object per line)::
 
     {"prompt": "...", "response": "...", "context_docs": [...]}
 
-If --input file is not found, a demo scan on a hard-coded sample prompt
-injection string is performed and the tool exits 0.
+Production scans fail closed when --input is missing, unreadable, or malformed.
+A demo scan is available only through the explicit --demo flag.
 
 Exit codes
 ----------
@@ -55,8 +55,9 @@ def _load_records(input_path: Path) -> list[dict[str, Any]]:
             try:
                 obj = json.loads(raw)
             except json.JSONDecodeError as exc:
-                print(f"[WARN] Skipping malformed JSON at line {lineno}: {exc}", file=sys.stderr)
-                continue
+                raise ValueError(f"line {lineno}: malformed JSON: {exc.msg}") from exc
+            if not isinstance(obj, dict):
+                raise ValueError(f"line {lineno}: record must be a JSON object")
             records.append(obj)
     return records
 
@@ -150,8 +151,13 @@ def main(argv: list[str] | None = None) -> int:
         help=(
             "Path to a JSONL file where each line is "
             '{"prompt": "...", "response": "...", "context_docs": [...]}. '
-            "If not found, runs a demo scan and exits 0."
+            "The path must exist; missing or malformed input exits 2."
         ),
+    )
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="Run the built-in demonstration corpus explicitly. Cannot be combined with --input.",
     )
     parser.add_argument(
         "--output-sarif",
@@ -183,27 +189,32 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[ERROR] Failed to initialise detectors: {exc}", file=sys.stderr)
         return 2
 
-    # Determine whether to run on a real corpus or a demo
-    is_demo = False
+    # Production inputs fail closed. Demo behavior is explicit so a missing
+    # evidence file can never be mistaken for a successful security scan.
+    is_demo = bool(args.demo)
     records: list[dict[str, Any]] = []
 
-    if args.input is None or not Path(args.input).exists():
-        if args.input is not None:
-            print(
-                f"[WARN] Input file not found: {args.input!r}. Running demo scan.",
-                file=sys.stderr,
-            )
-        else:
-            print("[INFO] No --input specified. Running demo scan.", file=sys.stderr)
-        is_demo = True
+    if args.demo and args.input:
+        print("[ERROR] --demo cannot be combined with --input", file=sys.stderr)
+        return 2
+    if args.demo:
         findings = _demo_scan(pii_detector, emb_detector)
     else:
+        if not args.input:
+            print("[ERROR] --input is required unless --demo is specified", file=sys.stderr)
+            return 2
         input_path = Path(args.input)
+        if not input_path.is_file():
+            print(f"[ERROR] Input file not found: {args.input!r}", file=sys.stderr)
+            return 2
         print(f"[INFO] Loading corpus from: {input_path}", file=sys.stderr)
         try:
             records = _load_records(input_path)
-        except OSError as exc:
-            print(f"[ERROR] Cannot read input file: {exc}", file=sys.stderr)
+        except (OSError, ValueError) as exc:
+            print(f"[ERROR] Cannot load input corpus: {exc}", file=sys.stderr)
+            return 2
+        if not records:
+            print("[ERROR] Input corpus contains no records", file=sys.stderr)
             return 2
         print(f"[INFO] Scanning {len(records)} record(s)…", file=sys.stderr)
         findings = _scan_records(records, pii_detector, emb_detector)
