@@ -296,14 +296,14 @@ The `/scan` API endpoint now enforces rate limiting and supports API key authent
 In-memory per-IP rate limiting is enforced based on `llm-security-config.yaml`:
 
 - **`max_requests_per_minute`** (default: 60) - Maximum scan requests per IP per minute. Exceeding this returns HTTP 429.
-- **`max_prompt_length_chars`** (default: 32768) - Maximum prompt length accepted. Exceeding this returns HTTP 413.
+- **`max_prompt_length_chars`** (default: 32768) - Maximum prompt length accepted. Exceeding this returns HTTP 413.\n- **`max_context_documents`** (default: 64) - Maximum RAG document count per scan.\n- **`max_total_input_chars`** (default: 131072) - Aggregate prompt + response + context character ceiling.
 
 ### API Key Authentication
 
 Authentication is controlled via the `REDTEAM_API_KEY` environment variable:
 
 - **If `REDTEAM_API_KEY` is set**: All requests to `/scan` must include an `X-API-Key` header matching the configured key. Requests without a valid key receive HTTP 401.
-- **If `REDTEAM_API_KEY` is not set**: Authentication is disabled (backwards-compatible). A response header `X-Auth-Status: disabled` indicates auth is not active.
+- **If `REDTEAM_API_KEY` is not set**: Protected endpoints fail closed with HTTP 401. There is no anonymous `/scan` or `/metrics` mode.
 
 To enable:
 
