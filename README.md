@@ -4,7 +4,7 @@
 
 Offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares grouped-template and out-of-distribution evaluation.
 
-The default grouped split (seed 42) measures **F1 = 0.97** on held-out synthetic template IDs. The novel-phrasing OOD benchmark now evaluates the **same detector trained on the same grouped training split** and performs an exact-overlap check against its 50 hand-authored fixtures. Run `python benchmarks/ood_novel_phrasings.py` for the current measured OOD result. The former 0.83 value came from a different training configuration and is no longer used as a directly comparable headline.
+The current grouped split (seed 42) measures **F1 = 0.9714** on held-out synthetic template IDs. The current novel-phrasing OOD benchmark evaluates the **same detector trained on the same grouped training split**, checks exact overlap against 50 hand-authored fixtures, and measures **F1 = 0.7188** (precision 0.5897, recall 0.92, accuracy 0.64). Run `python benchmarks/ood_novel_phrasings.py` to reproduce it. Older 0.83/0.8302 results came from an earlier configuration and are historical, not the current headline.
 
 > The InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` retain canonical attack markers. They are useful regression fixtures, not evidence of broad real-world generalization. The novel-phrasing suite is a harder regression measurement, but it is still a small hand-authored fixture set rather than a population-level estimate.
 
@@ -115,7 +115,7 @@ Here is how data moves through the system from start to finish:
 
 **Why TF-IDF + Logistic Regression instead of a transformer?**
 
-The goal is measuring detector methodology, not building the best possible detector. A simple model trains in seconds with zero GPU requirements. It runs in any CI environment. The grouped-split F1 of 0.97 looks strong, but the dedicated novel-phrasing OOD benchmark falls to 0.83. That difference is the more important result because it exposes the generalization limit of the pattern-matching baseline.
+The goal is measuring detector methodology, not building the best possible detector. A simple model trains in seconds with zero GPU requirements. It runs in any CI environment. The current grouped-split F1 is 0.9714, while the same-detector novel-phrasing OOD benchmark falls to 0.7188. That gap is the more important result because it exposes the generalization limit of the pattern-matching baseline.
 
 **Why offline evaluation instead of probing a live LLM?**
 
@@ -336,10 +336,10 @@ curl -X POST http://localhost:8000/scan \
 
 | Metric | Random Split (In-Distribution) | Grouped Split (OOD Templates) | Structural Fixtures | Novel-Phrasing OOD |
 |--------|-------------------------------|-------------------------------|---------------------|--------------------|
-| F1 Score | 1.00 | 0.97 | 0.98 | **0.83** |
-| Precision | 1.00 | 0.94 | ~0.98 | 0.79 |
-| Recall | 1.00 | 1.00 | ~0.98 | 0.88 |
-| False Positive Rate | 0.0% | 7.9% | ~1% | 24% (6/25) |
+| F1 Score | 1.00 | 0.9714 | 0.98 | **0.7188** |
+| Precision | 1.00 | 0.94 | ~0.98 | 0.5897 |
+| Recall | 1.00 | 1.00 | ~0.98 | 0.92 |
+| False Positive Rate | 0.0% | 7.9% | ~1% | 64% (16/25) |
 
 *Grouped/random measured with seed=42, corpus-seed=20240713, test-size=0.3 (pinned in `tests/test_eval.py`). Structural fixtures from `benchmarks/external_validation.py`. Novel-phrasing OOD from `benchmarks/ood_novel_phrasings.py` (pinned in `tests/test_ood_benchmark.py`). The novel-phrasing column is the honest generalization figure — structural fixtures still contain the markers the model memorised.*
 
@@ -347,13 +347,13 @@ curl -X POST http://localhost:8000/scan \
 |------------|-------|
 | Attack Categories | 6 |
 | OWASP Coverage | LLM01, LLM06, LLM07 |
-| Test Coverage | 96% (168 tests: 167 passed, 1 skipped) |
+| Test Coverage | 95.87% (170 collected: 169 passed, 1 skipped) |
 
 ### Limitations
 
 These are fundamental constraints, not bugs:
 
-1. **The 1.0 random-split F1 is optimistic.** It reflects template-shared train/test splits where the model has seen the same template shapes during training. The grouped split (F1=0.97) is a better estimate, but even that shares template *families*. The honest ceiling is the novel-phrasing OOD benchmark (**F1=0.83**), where natural-language paraphrases with no structural markers cause a reproducible ~14-point drop.
+1. **The 1.0 random-split F1 is optimistic.** It reflects template-shared train/test splits where the model has seen the same template shapes during training. The grouped split (F1=0.97) is a better estimate, but even that shares template *families*. The current novel-phrasing OOD benchmark measures **F1=0.7188**, where natural-language paraphrases with no structural markers cause a reproducible ~25-point drop from the grouped reference F1 of 0.9714.
 2. **TF-IDF captures lexical patterns, not semantic intent.** An attacker who phrases an injection in natural language with no structural tells will bypass this detector.
 3. **No live LLM execution.** The framework evaluates the detector offline. It does not test whether an actual LLM would comply with the injected instruction.
 4. **Cannot detect truly novel attacks.** If an attack strategy is absent from the training templates, the detector has no signal to work with.
@@ -366,7 +366,7 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 96% (168 tests: 167 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
+| Test coverage | 95.87% (170 collected: 169 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Configuration | Secure-by-default YAML | Every default blocks threats; relaxation requires justification |
