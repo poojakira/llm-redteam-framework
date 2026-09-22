@@ -39,7 +39,7 @@ def client_with_auth():
     import redteam.api.app as app_module
 
     original = app_module._API_KEY
-    app_module._API_KEY = "test-secret-key"
+    app_module._API_KEY = "test-secret-key-at-least-32-characters-long"
     try:
         with TestClient(app_module.app) as c:
             yield c
@@ -48,7 +48,7 @@ def client_with_auth():
 
 
 def _auth_headers() -> dict[str, str]:
-    return {"X-API-Key": "test-secret-key"}
+    return {"X-API-Key": "test-secret-key-at-least-32-characters-long"}
 
 
 def test_health(client_no_auth):
@@ -180,3 +180,8 @@ def test_get_or_create_metric_survives_duplicate():
         ["status"],
     )
     assert existing is not None
+
+def test_ready_with_strong_key(client_with_auth):
+    response = client_with_auth.get("/ready")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ready"
