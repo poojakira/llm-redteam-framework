@@ -47,6 +47,8 @@ except FileNotFoundError:
 
 _RATE_LIMIT = _config.get("rate_limiting", {}).get("max_requests_per_minute", 60)
 _MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get("max_prompt_length_chars", 32768)
+_MAX_CONTEXT_DOCS = _config.get("rate_limiting", {}).get("max_context_documents", 64)
+_MAX_TOTAL_INPUT_CHARS = _config.get("rate_limiting", {}).get("max_total_input_chars", 131072)
 _request_log: dict[str, list[float]] = defaultdict(list)
 
 
@@ -126,6 +128,7 @@ class ScanRequest(BaseModel):
     response: str = Field("", description="The LLM response (optional).")
     context_docs: list[str] = Field(
         default_factory=list,
+        max_length=_MAX_CONTEXT_DOCS,
         description="RAG context documents injected alongside the prompt.",
     )
     session_id: str = Field("", description="Optional session identifier for canary tracking.")
@@ -183,6 +186,16 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
             status_code=413,
             detail=(
                 f"Prompt too long: {len(req.prompt)} chars exceeds max " f"{_MAX_PROMPT_LENGTH}"
+            ),
+        )
+
+    total_input_chars = len(req.prompt) + len(req.response) + sum(len(doc) for doc in req.context_docs)
+    if total_input_chars > _MAX_TOTAL_INPUT_CHARS:
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                f"Total scan input too large: {total_input_chars} chars exceeds max "
+                f"{_MAX_TOTAL_INPUT_CHARS}"
             ),
         )
 
