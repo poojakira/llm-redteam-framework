@@ -76,11 +76,13 @@ def test_scan_success_returns_full_response(client_with_auth):
     assert "scan_id" in body
     assert "findings" in body
     assert "sarif" in body
+    assert "would_block" in body
     assert "blocked" in body
+    assert body["enforcement_mode"] in ("shadow", "block")
     assert "duration_ms" in body
 
 
-def test_scan_detects_pii_and_blocks(client_with_auth):
+def test_scan_detects_pii_and_recommends_block_in_shadow(client_with_auth):
     resp = client_with_auth.post(
         "/scan",
         json={"prompt": "my key is AKIAIOSFODNN7EXAMPLE", "response": ""},
@@ -89,9 +91,32 @@ def test_scan_detects_pii_and_blocks(client_with_auth):
     assert resp.status_code == 200
     body = resp.json()
     assert len(body["findings"]) >= 1
-    assert body["blocked"] is True
+    assert body["would_block"] is True
+    assert body["blocked"] is False
+    assert body["enforcement_mode"] == "shadow"
     rule_ids = {f["rule_id"] for f in body["findings"]}
     assert "SEC-AWS-KEY" in rule_ids
+
+
+
+def test_explicit_block_mode_enforces_high_findings(client_with_auth):
+    import redteam.api.app as app_module
+
+    original = app_module._ENFORCEMENT_MODE
+    app_module._ENFORCEMENT_MODE = "block"
+    try:
+        resp = client_with_auth.post(
+            "/scan",
+            json={"prompt": "my key is AKIAIOSFODNN7EXAMPLE"},
+            headers=_auth_headers(),
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["would_block"] is True
+        assert body["blocked"] is True
+        assert body["enforcement_mode"] == "block"
+    finally:
+        app_module._ENFORCEMENT_MODE = original
 
 
 def test_scan_with_context_docs_rag(client_with_auth):
