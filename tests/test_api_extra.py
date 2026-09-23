@@ -162,10 +162,12 @@ def test_check_api_key_unit_no_key():
     original = app_module._API_KEY
     app_module._API_KEY = ""
     try:
-        assert (\n            app_module._check_api_key(_Req())\n            == "API authentication is not configured with a sufficiently strong key"\n        )
+        assert (
+            app_module._check_api_key(_Req())
+            == "API authentication is not configured with a sufficiently strong key"
+        )
     finally:
         app_module._API_KEY = original
-
 
 def test_get_or_create_metric_survives_duplicate():
     """Re-creating an existing metric name returns the existing collector."""
