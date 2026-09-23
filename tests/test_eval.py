@@ -111,7 +111,7 @@ def test_grouped_split_no_template_overlap() -> None:
 
     # The two sets must be completely disjoint — the whole point of grouped holdout.
     assert train_tids.isdisjoint(test_tids), (
-        "Template IDs appear in both train and test: " f"{train_tids & test_tids}"
+        f"Template IDs appear in both train and test: {train_tids & test_tids}"
     )
     # Both splits must be non-empty.
     assert X_train and X_test

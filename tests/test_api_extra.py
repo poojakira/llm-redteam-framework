@@ -98,7 +98,6 @@ def test_scan_detects_pii_and_recommends_block_in_shadow(client_with_auth):
     assert "SEC-AWS-KEY" in rule_ids
 
 
-
 def test_explicit_block_mode_enforces_high_findings(client_with_auth):
     import redteam.api.app as app_module
 
@@ -169,6 +168,7 @@ def test_check_api_key_unit_no_key():
     finally:
         app_module._API_KEY = original
 
+
 def test_get_or_create_metric_survives_duplicate():
     """Re-creating an existing metric name returns the existing collector."""
     from prometheus_client import Counter
@@ -182,6 +182,7 @@ def test_get_or_create_metric_survives_duplicate():
         ["status"],
     )
     assert existing is not None
+
 
 def test_ready_with_strong_key(client_with_auth):
     response = client_with_auth.get("/ready")

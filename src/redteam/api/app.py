@@ -216,7 +216,9 @@ async def health() -> JSONResponse:
 async def ready() -> dict[str, str]:
     """Readiness fails closed until production authentication is configured."""
     if len(_API_KEY) < 32:
-        raise HTTPException(status_code=503, detail="REDTEAM_API_KEY must be at least 32 characters")
+        raise HTTPException(
+            status_code=503, detail="REDTEAM_API_KEY must be at least 32 characters"
+        )
     return {
         "status": "ready",
         "max_concurrent_scans": str(_MAX_CONCURRENT_SCANS),
@@ -252,12 +254,12 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
     if len(req.prompt) > _MAX_PROMPT_LENGTH:
         raise HTTPException(
             status_code=413,
-            detail=(
-                f"Prompt too long: {len(req.prompt)} chars exceeds max " f"{_MAX_PROMPT_LENGTH}"
-            ),
+            detail=(f"Prompt too long: {len(req.prompt)} chars exceeds max {_MAX_PROMPT_LENGTH}"),
         )
 
-    total_input_chars = len(req.prompt) + len(req.response) + sum(len(doc) for doc in req.context_docs)
+    total_input_chars = (
+        len(req.prompt) + len(req.response) + sum(len(doc) for doc in req.context_docs)
+    )
     if total_input_chars > _MAX_TOTAL_INPUT_CHARS:
         raise HTTPException(
             status_code=413,
