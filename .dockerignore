@@ -59,7 +59,6 @@ dashboard/
 
 # Development tools
 Makefile
-pyproject.toml
 uv.lock
 requirements.txt
 
