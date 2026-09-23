@@ -188,9 +188,9 @@ class TestInjectionBenchF1:
         texts = [t for t, _ in direct_overrides]
         y_pred = trained_detector.predict(texts)
         false_negs = sum(1 for pred in y_pred if pred == 0)
-        assert false_negs == 0, (
-            f"{false_negs} false negative(s) on obvious direct-override injections"
-        )
+        assert (
+            false_negs == 0
+        ), f"{false_negs} false negative(s) on obvious direct-override injections"
 
     def test_benign_false_positive_rate_below_20pct(self, trained_detector):
         """FP rate on benign controls must be below 20%."""
