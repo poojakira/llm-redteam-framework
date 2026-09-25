@@ -1,11 +1,22 @@
-# Incident Response Runbook
+# Incident Response Runbook (Template)
 
 ## LLM Red Team Framework — Operational Incident Playbooks
 
+> **Template / reference, not an operated service.** This is a single-maintainer
+> open-source project. There is no operated production deployment, no on-call
+> rotation, no PagerDuty, no team Slack channel, and no SLA behind this
+> repository. The playbooks below are a reference for a team that chooses to
+> self-host the detector API in their own environment. Mentions of "production",
+> "on-call", "SEV" response times, VP/security-lead escalation, monitoring
+> dashboards, and customer traffic are **template placeholders to adapt to your
+> own deployment** — they are not services or commitments provided by this
+> project. Paths like `/var/log/...` and multi-replica scaling assume a
+> deployment you operate yourself.
+
 **Version:** 1.0  
 **Last Updated:** 2026-08-27  
-**Owner:** Security Engineering Team  
-**Review Cadence:** Quarterly
+**Scope:** Reference template for self-hosters  
+**Review Cadence:** Adapt to your own process
 
 ---
 
@@ -18,14 +29,18 @@
 
 ---
 
-## Severity Levels
+## Severity Levels (template — adapt to your deployment)
 
-| Level | Definition | Response Time | Escalation |
+The response times and escalation roles below are placeholders for a team that
+operates its own deployment. This project does not provide on-call, paging, or
+an SLA.
+
+| Level | Definition | Suggested response | Escalation (your org) |
 |-------|-----------|---------------|------------|
-| SEV-1 | Active exploitation, safety bypass in production | 15 min | VP Engineering + Security Lead |
-| SEV-2 | Degraded detection, partial bypass possible | 1 hour | Team Lead + On-call |
-| SEV-3 | Minor gap, no active exploitation | 4 hours | On-call engineer |
-| SEV-4 | Improvement opportunity, no immediate risk | Next sprint | Team backlog |
+| SEV-1 | Active exploitation or safety bypass in a deployment you operate | Fastest | Your incident owner + security contact |
+| SEV-2 | Degraded detection, partial bypass possible | Prompt | Your maintainer + on-call, if you have one |
+| SEV-3 | Minor gap, no active exploitation | Routine | Your engineer |
+| SEV-4 | Improvement opportunity, no immediate risk | Backlog | Your backlog |
 
 ---
 
@@ -55,10 +70,10 @@
      confidence_threshold: 0.3  # Lower threshold = more aggressive blocking
    ```
 
-3. **Notify stakeholders**
-   - Page Security Lead and ML Engineer on-call
-   - Post in #incident-response Slack channel
-   - If SEV-1: notify VP Engineering
+3. **Notify stakeholders** (if you operate a deployment)
+   - Notify whoever owns your deployment's security response
+   - Use your own incident channel
+   - Escalate per your own process for the highest-severity cases
 
 ### Investigation (15–60 minutes)
 
@@ -436,12 +451,18 @@ curl -X POST http://localhost:8000/scan \
 
 ## Escalation Contacts
 
-| Role | Primary | Backup |
-|------|---------|--------|
-| On-call Engineer | Rotation schedule in PagerDuty | — |
-| Security Lead | @security-lead | @security-backup |
-| ML Engineer | @ml-lead | @ml-engineer-2 |
-| VP Engineering | @vp-eng | @cto |
+This is a single-maintainer open-source project. Route questions and security
+reports through the GitHub repository (issues / private security advisory per
+`SECURITY.md`). The role-based table below is a **template** for an organization
+that self-hosts the detector; it is not an operated on-call or paging
+arrangement provided by this project.
+
+| Role (template — your org) | Route |
+|------|---------|
+| Your on-call engineer | Your rotation, if any |
+| Your security contact | Your channel |
+| Your ML owner | Your channel |
+| Project maintainer | GitHub issues / security advisory |
 
 ---
 
@@ -449,4 +470,5 @@ curl -X POST http://localhost:8000/scan \
 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
-| 2026-08-27 | 1.0 | Initial runbook creation | Security Team |
+| 2026-08-27 | 1.0 | Initial runbook creation | Pooja Kiran |
+| 2026-09-24 | 1.1 | Reframed as self-host template; removed implied operated service/on-call/SLA | Pooja Kiran |
