@@ -372,7 +372,7 @@ curl -X POST http://localhost:8000/scan \
 |------------|-------|
 | Attack Categories | 6 |
 | OWASP Coverage | LLM01, LLM06, LLM07 |
-| Test Coverage | 95.87% (170 collected: 169 passed, 1 skipped) |
+| Test Coverage | 95.15% (174 collected: 173 passed, 1 skipped) |
 
 ### Limitations
 
@@ -391,7 +391,7 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 95.87% (170 collected: 169 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
+| Test coverage | 95.15% (174 collected: 173 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Enforcement | Shadow by default | `would_block` reports the recommendation; hard blocking requires explicit `REDTEAM_ENFORCEMENT_MODE=block` |
