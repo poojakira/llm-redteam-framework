@@ -1,5 +1,7 @@
 # Research Brief — Poster 05
 
+> Evidence status: This is a dated repository snapshot at the commit identified below. `VERIFIED_AT_SNAPSHOT` means verified for that commit and environment; it does not assert the same result on the latest `main`. Compare newer claims with the repository evidence before reuse.
+
 ## Repository
 `github.com/poojakira/llm-redteam-framework` (public, default branch `main`, primary language Python). Apache-2.0 • Python 3.12 • HEAD d11f07b • verified 2026-09-26
 
@@ -34,11 +36,11 @@ O4 — External InjectionBench/JailbreakBench
 ## Methodology
 1 Taxonomy (attack types) -> 2 Mutate (paraphrase) -> 3 Score (detector) -> 4 Group (split seed42) -> 5 OOD (novel phrasing) -> 6·7 External (bench + report)
 
-## Current Verified Evidence + Claim Ledger
-- **VERIFIED_CURRENT** — Grouped-split F1 0.9714; random-split 1.0 — results/scan_metrics.json (committed), pinned by tests/test_eval.py.
-- **VERIFIED_CURRENT** — OOD novel-phrasing F1 0.7188 (P 0.59 / R 0.92) — scan_metrics.json; ~25-pt drop vs grouped = memorization. Negative result shown.
-- **VERIFIED_CURRENT** — External InjectionBench/JailbreakBench-style F1 ~0.98 — scan_metrics.json; noted NOT a true OOD test (retains canonical markers).
-- **VERIFIED_CURRENT** — JailbreakBench behavior-screening F1 0.15 — evidence/generated/jailbreakbench_behavior_screening.json; explicitly a different task (harmful-vs-benign).
+## Evidence at Poster Snapshot + Claim Ledger
+- **VERIFIED_AT_SNAPSHOT** — Grouped-split F1 0.9714; random-split 1.0 — results/scan_metrics.json (committed), pinned by tests/test_eval.py.
+- **VERIFIED_AT_SNAPSHOT** — OOD novel-phrasing F1 0.7188 (P 0.59 / R 0.92) — scan_metrics.json; ~25-pt drop vs grouped = memorization. Negative result shown.
+- **VERIFIED_AT_SNAPSHOT** — External InjectionBench/JailbreakBench-style F1 ~0.98 — scan_metrics.json; noted NOT a true OOD test (retains canonical markers).
+- **VERIFIED_AT_SNAPSHOT** — JailbreakBench behavior-screening F1 0.15 — evidence/generated/jailbreakbench_behavior_screening.json; explicitly a different task (harmful-vs-benign).
 - **UNSUPPORTED (disclaimed)** — Real-world jailbreak detection rate / live-model defense — README + evidence claim_boundary forbid; not claimed.
 
 ## Important Negative / Honest Results
