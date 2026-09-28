@@ -1,6 +1,6 @@
 # Claim Ledger — Poster 05 (05-llm-redteam-framework)
 
-Apache-2.0 • Python 3.12 • HEAD d3fe468 • verified 2026-09-26. Classification: VERIFIED_CURRENT / VERIFIED_HISTORICAL / PARTIAL / UNVERIFIED / UNSUPPORTED.
+Apache-2.0 • Python 3.12 • HEAD d11f07b • verified 2026-09-26. Classification: VERIFIED_CURRENT / VERIFIED_HISTORICAL / PARTIAL / UNVERIFIED / UNSUPPORTED.
 
 | # | Claim | Classification | Evidence |
 |---|---|---|---|
