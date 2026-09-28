@@ -1,5 +1,3 @@
-<!-- profile-growth-header -->
-
 <!-- security-systems-poster -->
 ## Research Poster
 
@@ -9,34 +7,69 @@
 
 > Technical research poster (36 x 48 in). Click the image for the print-resolution **[PDF](poster/poster_36x48.pdf)**.
 > Every metric on it is evidence-backed; historical/projected numbers are labeled and separated from current results.
-> Part of the *Pooja Kiran - Security Systems* engineering poster collection.
 <!-- security-systems-poster -->
-
-
-# llm-redteam-framework
-
-> **LLM red teaming / security evaluation**
-
-Reproducible adversarial testing for prompt injection and LLM security controls.
-
-**Why this project:** security teams need a reproducible way to test, inspect, or measure this boundary before treating a security control as effective.
-
-**Quick path**
-1. Read the threat model / scope below.
-2. Run the smallest documented example.
-3. Reproduce the tests or benchmark.
-4. Inspect the limitations and evidence before making deployment claims.
-5. Open an issue or PR if you find a gap, add a fixture, or improve the documentation.
 
 # LLM Red Team Framework
 
-**Repository owner & maintainer:** Pooja Kiran ([@poojakira](https://github.com/poojakira)) — I own and maintain this repository and drive its design, engineering, validation, documentation, and evidence-backed releases.
+> Reproducible, offline adversarial testing for prompt-injection detectors — with honest in-distribution vs. out-of-distribution evaluation.
 
-Offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares grouped-template and out-of-distribution evaluation.
+[![CI](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-173%20passing-brightgreen)](#testing)
+[![Coverage](https://img.shields.io/badge/coverage-95.15%25-brightgreen)](#testing)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-The current grouped split (seed 42) measures **F1 = 0.9714** on held-out synthetic template IDs. The current novel-phrasing OOD benchmark evaluates the **same detector trained on the same grouped training split**, checks exact overlap against 50 hand-authored fixtures, and measures **F1 = 0.7188** (precision 0.5897, recall 0.92, accuracy 0.64). Run `python benchmarks/ood_novel_phrasings.py` to reproduce it. Older 0.83/0.8302 results came from an earlier configuration and are historical, not the current headline.
+**Owner & maintainer:** Pooja Kiran ([@poojakira](https://github.com/poojakira)).
 
-> The InjectionBench/JailbreakBench-style fixtures in `benchmarks/external_validation.py` retain canonical attack markers. They are useful regression fixtures, not evidence of broad real-world generalization. The novel-phrasing suite is a harder regression measurement, but it is still a small hand-authored fixture set rather than a population-level estimate.
+## Overview
+
+`llm-redteam-framework` is an offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares grouped-template (in-distribution) evaluation against novel-phrasing out-of-distribution evaluation — deliberately exposing the generalization gap of pattern-matching defenses. It runs entirely offline (no live LLM calls) and emits SARIF for CI integration. It exists to measure detector *methodology* honestly, not to claim a best-in-class detector.
+
+## Verified Snapshot
+
+Reproduced on current `main` (Python 3.12). Grouped/OOD figures are pinned in tests.
+
+| Metric | Current verified result |
+|---|---:|
+| Tests | 174 collected — 173 passed, 1 skipped |
+| Statement coverage | 95.15% |
+| Attack categories | 6 (+ benign control) |
+| Grouped-split F1 (in-distribution) | 0.9714 |
+| Novel-phrasing OOD F1 | 0.7188 (precision 0.5897, recall 0.92) |
+
+## Security Problem
+
+Prompt injection is the top risk in the OWASP LLM Top 10. Teams deploying LLM applications need a reproducible way to measure whether an injection detector remains useful on inputs it was **not** trained on — because a detector that scores near-perfect on familiar templates can collapse on novel phrasings, and that gap is exactly where real-world bypasses live.
+
+## Threat Model & Scope
+
+**In scope:** offline classification of adversarial vs. benign *prompt text* across six injection categories; honest measurement of in-distribution, grouped-holdout, structural-fixture, and novel-phrasing OOD performance.
+
+**Out of scope / not claimed:** It does not execute a live LLM or test whether a model actually complies with an injection. It is not comparable to LLM-judge benchmarks like JailbreakBench (which judge model *responses*) — comparing F1 across the two is a category error (see `benchmarks/jailbreakbench_comparison.md`). Character-n-gram TF-IDF captures lexical patterns, not semantic intent; natural-language paraphrases evade it. The `/scan` HTTP service is shadow-only by default; hard blocking requires explicit, calibrated operator opt-in.
+
+## Architecture
+
+```text
+Attack templates + benign samples
+      |
+      v
+Char n-gram TF-IDF  -->  Logistic Regression (binary: malicious vs benign)
+      |
+      v
+Grouped / random / OOD split + metric computation
+      |
+      v
+OWASP LLM + MITRE ATT&CK v19 mapping  -->  SARIF + JSON metrics + CI exit code
+```
+
+## Core Capabilities
+
+- Adversarial corpus generation across 6 attack categories (direct override, role switch, context escape, indirect/RAG, obfuscation, multi-step) + benign control
+- TF-IDF + Logistic Regression detector; optional embedding-similarity, PII-leakage, RAG-poisoning, canary detectors
+- Grouped-template splitting to prevent leakage; novel-phrasing OOD benchmark as the honest generalization figure
+- SARIF output for GitHub Code Scanning; shadow-by-default `/scan` FastAPI service with API-key auth and rate limiting
+- OWASP LLM Top 10 + MITRE ATT&CK v19 mapping
+
+
 
 ---
 
