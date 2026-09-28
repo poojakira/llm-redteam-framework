@@ -1,7 +1,7 @@
 # Research Brief — Poster 05
 
 ## Repository
-`github.com/poojakira/llm-redteam-framework` (public, default branch `main`, primary language Python). Apache-2.0 • Python 3.12 • HEAD d3fe468 • verified 2026-09-26
+`github.com/poojakira/llm-redteam-framework` (public, default branch `main`, primary language Python). Apache-2.0 • Python 3.12 • HEAD d11f07b • verified 2026-09-26
 
 ## Academic Project Title
 **Evaluating an Offline Detector Against Adversarial Prompt Attacks**

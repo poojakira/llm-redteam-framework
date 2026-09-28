@@ -1,6 +1,6 @@
 # Verified Metrics — Poster 05
 
-Apache-2.0 • Python 3.12 • HEAD d3fe468 • verified 2026-09-26. Verified for this poster on Windows / CPython 3.12.10.
+Apache-2.0 • Python 3.12 • HEAD d11f07b • verified 2026-09-26. Verified for this poster on Windows / CPython 3.12.10.
 
 ## Headline cards
 - 0.97 — GROUPED F1
