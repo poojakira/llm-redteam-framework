@@ -105,11 +105,19 @@ def _validated_base_url(base_url: str, *, allow_private: bool = False) -> str:
     return base_url.rstrip("/")
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError("live endpoint redirects are not permitted")
+
+
 def _default_http_post(url: str, data: bytes, headers: dict[str, str]) -> dict[str, Any]:
     """Default HTTP POST using urllib (no external dependencies)."""
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    with urllib.request.build_opener(_NoRedirect()).open(req, timeout=30) as resp:
+        body = resp.read(1024 * 1024 + 1)
+        if len(body) > 1024 * 1024:
+            raise ValueError("endpoint response exceeds 1 MiB")
+        return json.loads(body.decode("utf-8"))
 
 
 def _classify_response(text: str) -> str:

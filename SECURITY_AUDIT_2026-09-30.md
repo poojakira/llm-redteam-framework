@@ -1,43 +1,19 @@
-# Security Audit — 2026-09-30
+# Security review, 30 September 2026
 
-## Scope
-Initial pre-remediation review of the current `main` branch.
+Reviewed baseline: `891e0cc5e82b099987f44990bb69a575d2750dbe`. Source review and focused regression verification; this is not proof that all vulnerabilities are absent.
 
-## Runtime surface
-Authenticated FastAPI scanning API with Prometheus metrics.
+## Fixes and reviewed controls
 
-## Verified controls
-- API authentication fails closed.
-- YAML configuration uses safe loading.
-- Input character counts, document counts, concurrency, and scan timeout are bounded.
-- Generic catch-all server errors are returned while details are logged server-side.
-- Metrics require authentication.
-- No confirmed live API key was found in the current main branch.
+Streaming body limit rejects chunked overflow before parsing. Credentialed live scans reject redirects and cap responses at 1 MiB. UTF-8 byte comparisons reject non-ASCII invalid API keys without comparison errors. Runtime dependency floors exclude audited vulnerable Starlette/AnyIO versions.
 
-## Findings to remediate/verify
-1. Current limiter is in-memory; require a shared production limiter for multi-replica deployments.
-2. Avoid using one shared API-key hash as the only rate-limit identity when multiple clients share a key.
-3. Add request-byte limits before JSON parsing.
-4. Bound `session_id` and response string lengths directly in Pydantic fields.
-5. Add critical alerts for repeated auth failures, timeouts, scan errors, and saturation.
-6. Add health-gated blue/green/rollback guidance.
+## Verification
 
-## Not applicable
-SQL tenant isolation and password reset.
+175 passed; one optional ATT&CK package test skipped. Tests ran in an isolated Python 3.12 environment. FastAPI TestClient required execution outside the default sandbox; a minimal unchanged app reproduced the sandbox deadlock. Final installed-environment pip-audit reported no known vulnerabilities. This does not cover every optional dependency, every container image, or arbitrary older environments allowed by broad dependency bounds.
 
-<!-- repo-verification:start -->
-## Verification update — 2026-09-30
+## Secret history review
 
-- **Scope:** Account-wide `poojakira` repository pass covering source/configuration, CI/release workflows, security-hygiene gates, dependency/SAST controls, and documentation consistency.
-- **Remediation:** Applied safe Ruff fixes/formatting, pinned CI/security/release/container actions to immutable revisions, and reran the security scans.
-- **Verification state:** CI, Production Gate, Security Hygiene, Documentation Integrity, both LLM Security Scan workflows, and Container Release completed successfully after remediation.
-- **Security note:** The malicious prompt corpus is intentionally adversarial test data and was retained; detections in that corpus are expected evaluation behavior.
-- **Evidence boundary:** This update records repository and GitHub Actions evidence observed during the pass. It is not a claim of independent penetration testing, production deployment, or zero residual risk.
-<!-- repo-verification:end -->
+16 history matches were synthetic detector/API fixtures and documentation examples. No tracked environment or private-key paths found in fetched history. Gitleaks classifications are pattern matches, not provider validity checks. No provider key was tested or revoked, and fetched Git refs do not include every cached/forked copy. `.env` and local credential patterns remain ignored; example files must contain placeholders only.
 
-## Verification checkpoint — 2026-09-30
+## Deployment and remaining limits
 
-- **Snapshot commit:** `82ea1670604de49c08b31b97f8fbd7dd009bfe6a`
-- **Status:** VERIFIED / GATE PENDING
-- **Evidence:** CI, Security Hygiene, Documentation Integrity, both LLM Security Scan runs, and Container Release completed successfully. The Production Gate was still pending at the snapshot.
-- This checkpoint is intentionally date-bounded. It does not claim zero vulnerabilities or universal production readiness.
+The API key authorizes the same scan/metrics operations for every holder; there is no tenant or role policy. Rate limits are per process and require a shared ingress limiter for multiple workers. DNS validation is not connection-pinned: use an egress firewall for live endpoint scans. Timeout cancellation does not terminate running detector threads; production workloads need killable worker isolation.

@@ -1,7 +1,10 @@
-fastapi>=0.111
+fastapi>=0.142.1
 numpy>=1.23
 prometheus-client>=0.20
 pydantic>=2.7
 pyyaml>=6.0
 scikit-learn>=1.1
 uvicorn[standard]>=0.29
+
+starlette>=1.7.0,<2
+anyio>=4.14.2,<5

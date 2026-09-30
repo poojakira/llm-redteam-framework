@@ -15,8 +15,8 @@ class _FakeResp:
     def __init__(self, payload: dict):
         self._data = json.dumps(payload).encode("utf-8")
 
-    def read(self):
-        return self._data
+    def read(self, size=-1):
+        return self._data[:size] if size >= 0 else self._data
 
     def __enter__(self):
         return self
@@ -33,7 +33,10 @@ def test_default_http_post(monkeypatch):
         captured["method"] = req.get_method()
         return _FakeResp({"choices": [{"message": {"content": "PWNED"}}]})
 
-    monkeypatch.setattr(es.urllib.request, "urlopen", fake_urlopen)
+    class FakeOpener:
+        open = staticmethod(fake_urlopen)
+
+    monkeypatch.setattr(es.urllib.request, "build_opener", lambda *args: FakeOpener())
     result = _default_http_post(
         "http://x/v1/chat/completions", b"{}", {"Content-Type": "application/json"}
     )

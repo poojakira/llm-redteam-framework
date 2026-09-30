@@ -34,6 +34,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
+from redteam.api.body_limit import RequestBodyLimit
 from redteam.detectors.embedding_similarity import EmbeddingSimilarityDetector
 from redteam.detectors.pii_leakage import PIILeakageDetector
 from redteam.detectors.rag_poisoning import RAGPoisoningDetector
@@ -94,7 +95,7 @@ def _check_api_key(request: Request) -> str | None:
     if len(_API_KEY) < 32:
         return "API authentication is not configured with a sufficiently strong key"
     provided = request.headers.get("X-API-Key", "")
-    if not provided or not hmac.compare_digest(provided, _API_KEY):
+    if not provided or not hmac.compare_digest(provided.encode("utf-8"), _API_KEY.encode("utf-8")):
         return "Invalid or missing API key"
     return None
 
@@ -106,21 +107,11 @@ app = FastAPI(
 )
 
 
+app.add_middleware(RequestBodyLimit, max_bytes=_MAX_REQUEST_BYTES)
+
+
 @app.middleware("http")
 async def _request_size_limit(request: Request, call_next):
-    if request.method in {"POST", "PUT", "PATCH"}:
-        content_length = request.headers.get("content-length")
-        if content_length:
-            try:
-                if int(content_length) > _MAX_REQUEST_BYTES:
-                    return JSONResponse(
-                        status_code=413, content={"detail": "Request body too large"}
-                    )
-            except ValueError:
-                return JSONResponse(status_code=400, content={"detail": "Invalid Content-Length"})
-        body = await request.body()
-        if len(body) > _MAX_REQUEST_BYTES:
-            return JSONResponse(status_code=413, content={"detail": "Request body too large"})
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
