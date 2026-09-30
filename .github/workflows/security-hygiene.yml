@@ -107,6 +107,9 @@ jobs:
           synthetic_fixture_exceptions={
               ("d053169c3733", "tests/test_cli_scan.py"),
               ("d053169c3733", "tests/test_pii_extra.py"),
+              ("10ebf3a5eca4", "tests/test_cli_scan.py"),
+              ("ae80a230fe6d", "tests/test_cli_scan.py"),
+              ("be2bacfbbf4f", "tests/test_pii_extra.py"),
           }
           for line in history.splitlines():
               if line.startswith("__COMMIT__"):
