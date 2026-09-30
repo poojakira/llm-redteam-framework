@@ -8,8 +8,11 @@ Works with: OpenAI, Ollama, llama.cpp, vLLM, or any OpenAI-compatible API.
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import re
+import socket
+import urllib.parse
 import urllib.request
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -65,6 +68,39 @@ class EndpointScanResult:
         return asdict(self)
 
 
+def _validated_base_url(base_url: str, *, allow_private: bool = False) -> str:
+    """Validate a live endpoint before any credential can be forwarded to it."""
+    parsed = urllib.parse.urlparse(base_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise ValueError("base_url must be an absolute http(s) URL")
+    if parsed.username or parsed.password:
+        raise ValueError("base_url must not contain userinfo")
+    if parsed.scheme != "https" and not allow_private:
+        raise ValueError("public live endpoints must use HTTPS")
+
+    try:
+        addresses = {
+            ipaddress.ip_address(item[4][0])
+            for item in socket.getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
+        }
+    except (OSError, ValueError) as exc:
+        raise ValueError("endpoint host could not be resolved safely") from exc
+
+    if not allow_private:
+        for address in addresses:
+            if (
+                address.is_private
+                or address.is_loopback
+                or address.is_link_local
+                or address.is_multicast
+                or address.is_reserved
+                or address.is_unspecified
+            ):
+                raise ValueError("private, local, reserved, or metadata-network endpoints require explicit allow_private=True")
+
+    return base_url.rstrip("/")
+
+
 def _default_http_post(url: str, data: bytes, headers: dict[str, str]) -> dict[str, Any]:
     """Default HTTP POST using urllib (no external dependencies)."""
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
@@ -98,6 +134,7 @@ def scan_endpoint(
     api_key: str | None = None,
     model: str = "gpt-3.5-turbo",
     http_post: Callable[..., dict[str, Any]] | None = None,
+    allow_private: bool = False,
 ) -> EndpointScanResult:
     """Scan an OpenAI-compatible endpoint with prompt injections.
 
@@ -118,6 +155,7 @@ def scan_endpoint(
         corpus = PUBLISHED_INJECTIONS
 
     if http_post is None:
+        base_url = _validated_base_url(base_url, allow_private=allow_private)
         http_post = _default_http_post
 
     url = f"{base_url.rstrip('/')}/v1/chat/completions"
@@ -187,6 +225,11 @@ def main() -> None:
         "--model", default="gpt-3.5-turbo", help="Model name (default: gpt-3.5-turbo)"
     )
     parser.add_argument("--api-key", default=None, help="Optional API key")
+    parser.add_argument(
+        "--allow-private",
+        action="store_true",
+        help="Explicitly allow localhost/private endpoints (for Ollama/lab targets).",
+    )
     parser.add_argument("--limit", type=int, default=None, help="Limit number of prompts to test")
     args = parser.parse_args()
 
@@ -203,6 +246,7 @@ def main() -> None:
         corpus=corpus,
         api_key=args.api_key,
         model=args.model,
+        allow_private=args.allow_private,
     )
 
     print("\nResults:")
