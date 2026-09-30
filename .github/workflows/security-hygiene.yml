@@ -103,9 +103,23 @@ jobs:
           placeholders=("EXAMPLE","PLACEHOLDER","REDACTED","CHANGEME","REPLACE_ME","YOUR_","YOUR-","XXXXX")
           history=subprocess.check_output(["git","log","--all","-p","--format=__COMMIT__%H","--no-ext-diff"],text=True,errors="replace")
           commit="unknown"
+          current_path=""
+          synthetic_fixture_exceptions={
+              ("d053169c3733", "tests/test_cli_scan.py"),
+              ("d053169c3733", "tests/test_pii_extra.py"),
+          }
           for line in history.splitlines():
               if line.startswith("__COMMIT__"):
-                  commit=line.removeprefix("__COMMIT__")[:12]; continue
+                  commit=line.removeprefix("__COMMIT__")[:12]
+                  current_path=""
+                  continue
+              if line.startswith("diff --git a/"):
+                  current_path=line.split(" b/",1)[-1]
+                  continue
+              # These two paths in this one inspected historical commit intentionally
+              # used realistic key-shaped strings to test credential detection.
+              if (commit,current_path) in synthetic_fixture_exceptions:
+                  continue
               if not line.startswith(("+","-")) or line.startswith(("+++","---")): continue
               upper=line.upper()
               for label,pattern in patterns.items():
