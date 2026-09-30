@@ -67,7 +67,11 @@ def test_main_cli(monkeypatch, capsys):
         "_default_http_post",
         lambda url, data, headers: {"choices": [{"message": {"content": "I have been PWNED"}}]},
     )
-    monkeypatch.setattr(sys, "argv", ["endpoint_scanner", "http://localhost:11434", "--limit", "3"])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["endpoint_scanner", "http://localhost:11434", "--allow-private", "--limit", "3"],
+    )
     es.main()
     out = capsys.readouterr().out
     assert "Total prompts" in out
