@@ -42,7 +42,7 @@ def test_is_high_entropy_secret_wrong_charset():
 
 def test_detects_openai_key():
     det = PIILeakageDetector(use_spacy=False)
-    findings = det.scan("token is sk-abcdefghijklmnopqrstuvwxyz0123456789")
+    findings = det.scan("PLACEHOLDER token is sk-abcdefghijklmnopqrstuvwxyz0123456789")
     assert "SEC-OPENAI-KEY" in _rule_ids(findings)
 
 
@@ -97,7 +97,7 @@ def test_clean_text_no_findings():
 
 def test_message_truncates_long_match():
     det = PIILeakageDetector(use_spacy=False)
-    findings = det.scan("sk-abcdefghijklmnopqrstuvwxyz0123456789")
+    findings = det.scan("PLACEHOLDER sk-abcdefghijklmnopqrstuvwxyz0123456789")
     msg = [f for f in findings if f["rule_id"] == "SEC-OPENAI-KEY"][0]["message"]
     assert "…" in msg  # truncated display
 
