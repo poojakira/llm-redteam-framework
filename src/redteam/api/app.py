@@ -52,6 +52,7 @@ _RATE_LIMIT = _config.get("rate_limiting", {}).get("max_requests_per_minute", 60
 _MAX_PROMPT_LENGTH = _config.get("rate_limiting", {}).get("max_prompt_length_chars", 32768)
 _MAX_CONTEXT_DOCS = _config.get("rate_limiting", {}).get("max_context_documents", 64)
 _MAX_TOTAL_INPUT_CHARS = _config.get("rate_limiting", {}).get("max_total_input_chars", 131072)
+_MAX_REQUEST_BYTES = int(os.environ.get("REDTEAM_MAX_REQUEST_BYTES", str(256 * 1024)))
 _request_log: dict[str, list[float]] = defaultdict(list)
 _SCAN_TIMEOUT_SECONDS = float(os.environ.get("REDTEAM_SCAN_TIMEOUT_SECONDS", "30"))
 _MAX_CONCURRENT_SCANS = int(os.environ.get("REDTEAM_MAX_CONCURRENT_SCANS", "8"))
@@ -59,6 +60,8 @@ if _SCAN_TIMEOUT_SECONDS <= 0:
     raise RuntimeError("REDTEAM_SCAN_TIMEOUT_SECONDS must be positive")
 if _MAX_CONCURRENT_SCANS < 1 or _MAX_CONCURRENT_SCANS > 128:
     raise RuntimeError("REDTEAM_MAX_CONCURRENT_SCANS must be between 1 and 128")
+if _MAX_REQUEST_BYTES < 1024 or _MAX_REQUEST_BYTES > 4 * 1024 * 1024:
+    raise RuntimeError("REDTEAM_MAX_REQUEST_BYTES must be between 1024 and 4194304")
 _scan_slots = asyncio.Semaphore(_MAX_CONCURRENT_SCANS)
 
 
@@ -97,6 +100,24 @@ app = FastAPI(
     description="Scan LLM prompt/response pairs for security findings.",
 )
 
+
+
+
+
+@app.middleware("http")
+async def _request_size_limit(request: Request, call_next):
+    if request.method in {"POST", "PUT", "PATCH"}:
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                if int(content_length) > _MAX_REQUEST_BYTES:
+                    return JSONResponse(status_code=413, content={"detail": "Request body too large"})
+            except ValueError:
+                return JSONResponse(status_code=400, content={"detail": "Invalid Content-Length"})
+        body = await request.body()
+        if len(body) > _MAX_REQUEST_BYTES:
+            return JSONResponse(status_code=413, content={"detail": "Request body too large"})
+    return await call_next(request)
 
 @app.exception_handler(Exception)
 async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -244,7 +265,8 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
     if auth_error:
         raise HTTPException(status_code=401, detail=auth_error)
 
-    rate_key = hashlib.sha256(_API_KEY.encode("utf-8")).hexdigest()[:24]
+    peer = request.client.host if request.client else "unknown"
+    rate_key = hashlib.sha256(f"{peer}\0{_API_KEY}".encode("utf-8")).hexdigest()[:24]
     if _is_rate_limited(rate_key):
         raise HTTPException(
             status_code=429,
