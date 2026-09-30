@@ -527,3 +527,13 @@ The most useful output of this project is not the detector. It is the methodolog
 Building a classifier that scores 1.0 F1 on a random split feels like progress. Switching to a grouped split (held-out templates) drops it to 0.97. Testing against external benchmark fixtures with novel phrasings shows the real ceiling. The grouped splitting methodology is the single most important design choice here: it forces honest evaluation by preventing the model from memorizing template shapes.
 
 If you take one thing from this repository: always measure your security tooling against inputs it has never seen. The gap between "works on familiar patterns" and "works on novel attacks" is where real-world breaches happen.
+
+<!-- repo-verification:start -->
+## Verification update — 2026-09-30
+
+- **Scope:** Account-wide `poojakira` repository pass covering source/configuration, CI/release workflows, security-hygiene gates, dependency/SAST controls, and documentation consistency.
+- **Remediation:** Applied safe Ruff fixes/formatting, pinned CI/security/release/container actions to immutable revisions, and reran the security scans.
+- **Verification state:** CI, Production Gate, Security Hygiene, Documentation Integrity, both LLM Security Scan workflows, and Container Release completed successfully after remediation.
+- **Security note:** The malicious prompt corpus is intentionally adversarial test data and was retained; detections in that corpus are expected evaluation behavior.
+- **Evidence boundary:** This update records repository and GitHub Actions evidence observed during the pass. It is not a claim of independent penetration testing, production deployment, or zero residual risk.
+<!-- repo-verification:end -->
