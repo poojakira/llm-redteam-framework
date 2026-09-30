@@ -7,9 +7,9 @@
 
 | ID | Severity | Finding | Status |
 |---|---|---|---|
-| LLM-001 | High | Live endpoint scanning accepts an arbitrary base URL and forwards the supplied API key to that host. Without an explicit private-network opt-in this can enable SSRF/credential forwarding. | Open |
-| LLM-002 | Medium | The API bounds parsed text but does not impose a raw request-byte limit before body parsing. | Open |
-| LLM-003 | Medium | The in-memory limiter is keyed only by the configured service API key, so one caller can exhaust a shared-key quota for all clients. | Open |
+| LLM-001 | High | Live endpoint scanning now validates scheme, userinfo, DNS resolution and resolved IP ranges before credential forwarding; private/local targets require explicit `allow_private=True`. | Fixed |
+| LLM-002 | Medium | HTTP middleware now enforces a bounded raw request size before scan handling. | Fixed |
+| LLM-003 | Medium | The limiter key now incorporates the request peer together with the configured API key, preventing one peer from consuming the entire shared-key bucket. Multi-replica deployments still require a shared limiter. | Fixed |
 | LLM-004 | Info | Generic server errors are already returned by the API and detailed exceptions are logged server-side. | Verified |
 
 ## Existing controls verified
