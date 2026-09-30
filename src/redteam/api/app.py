@@ -107,29 +107,6 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def _request_security_boundary(request: Request, call_next):
-    if request.method in {"POST", "PUT", "PATCH"}:
-        declared = request.headers.get("content-length")
-        if declared:
-            try:
-                if int(declared) > _MAX_REQUEST_BYTES:
-                    return JSONResponse(status_code=413, content={"error": "request too large"})
-            except ValueError:
-                return JSONResponse(status_code=400, content={"error": "invalid content length"})
-        body = await request.body()
-        if len(body) > _MAX_REQUEST_BYTES:
-            return JSONResponse(status_code=413, content={"error": "request too large"})
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "no-referrer"
-    return response
-
-
-
-
-
-@app.middleware("http")
 async def _request_size_limit(request: Request, call_next):
     if request.method in {"POST", "PUT", "PATCH"}:
         content_length = request.headers.get("content-length")
@@ -142,7 +119,12 @@ async def _request_size_limit(request: Request, call_next):
         body = await request.body()
         if len(body) > _MAX_REQUEST_BYTES:
             return JSONResponse(status_code=413, content={"detail": "Request body too large"})
-    return await call_next(request)
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
 
 @app.exception_handler(Exception)
 async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -183,17 +165,8 @@ _emb_detector = EmbeddingSimilarityDetector()
 
 
 class ScanRequest(BaseModel):
-    prompt: str = Field(
-        ...,
-        min_length=1,
-        max_length=_MAX_PROMPT_LENGTH,
-        description="The user prompt sent to the LLM.",
-    )
-    response: str = Field(
-        "",
-        max_length=_MAX_TOTAL_INPUT_CHARS,
-        description="The LLM response (optional).",
-    )
+    prompt: str = Field(..., min_length=1, description="The user prompt sent to the LLM.")
+    response: str = Field("", description="The LLM response (optional).")
     context_docs: list[str] = Field(
         default_factory=list,
         max_length=_MAX_CONTEXT_DOCS,
@@ -304,7 +277,7 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
         raise HTTPException(status_code=401, detail=auth_error)
 
     peer = request.client.host if request.client else "unknown"
-    rate_key = hashlib.sha256(f"{peer}\0{_API_KEY}".encode("utf-8")).hexdigest()[:24]
+    rate_key = hashlib.sha256(f"{peer}\0{_API_KEY}".encode()).hexdigest()[:24]
     if _is_rate_limited(rate_key):
         raise HTTPException(
             status_code=429,
