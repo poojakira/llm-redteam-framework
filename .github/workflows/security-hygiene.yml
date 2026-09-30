@@ -133,7 +133,7 @@ jobs:
                       token=match.group(0); nearby=upper[max(0,match.start()-50):match.end()+50]
                       if (
                           not any(word in token.upper() or word in nearby for word in placeholders)
-                          and (commit, current_path, label) not in synthetic_fixture_signals
+                          and (commit, label) not in synthetic_fixture_signals
                       ):
                           failures.append(f"{commit}: possible historical {label}")
                       break
