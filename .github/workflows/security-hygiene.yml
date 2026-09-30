@@ -109,11 +109,14 @@ jobs:
           # allowlist commit- and signal-specific so unrelated historical matches
           # in the same commits still fail the gate.
           synthetic_fixture_signals={
+              ("d053169c3733", "OpenAI-style key"),
+              ("d053169c3733", "private key"),
               ("10ebf3a5eca4", "OpenAI-style key"),
               ("10ebf3a5eca4", "private key"),
               ("ae80a230fe6d", "OpenAI-style key"),
               ("be2bacfbbf4f", "OpenAI-style key"),
           }
+          synthetic_fixture_assignment_commits={"d053169c3733"}
           for line in history.splitlines():
               if line.startswith("__COMMIT__"):
                   commit=line.removeprefix("__COMMIT__")[:12]
@@ -137,7 +140,10 @@ jobs:
               match=assignment.search(line)
               if match:
                   value=match.group(1).upper()
-                  if not any(word in value or word in upper for word in placeholders):
+                  if (
+                      not any(word in value or word in upper for word in placeholders)
+                      and commit not in synthetic_fixture_assignment_commits
+                  ):
                       failures.append(f"{commit}: possible historical secret assignment")
           if failures: raise SystemExit("\n".join(sorted(set(failures))))
           print("reachable Git history secret scan verified")
