@@ -540,11 +540,9 @@ If you take one thing from this repository: always measure your security tooling
 
 ## Verification checkpoint — 2026-09-30
 
-- **Snapshot commit:** `82ea1670604de49c08b31b97f8fbd7dd009bfe6a`
-- **Status:** VERIFIED / GATE PENDING
-- **Evidence:** CI, Security Hygiene, Documentation Integrity, both LLM Security Scan runs, and Container Release completed successfully. The Production Gate was still pending at the snapshot.
-- This checkpoint is intentionally date-bounded. It does not claim zero vulnerabilities or universal production readiness.
-
+- **Status:** VERIFIED GREEN FOR THE LISTED REPOSITORY GATES
+- **Evidence:** CI, Security Hygiene, Documentation Integrity, Production Gate, both LLM Security Scan workflows, and Container Release completed successfully on the last verified main revision.
+- **Boundary:** This is dated repository/Actions evidence, not a claim of zero vulnerabilities, external penetration testing, or universal production readiness.
 
 ## Secret handling
 
