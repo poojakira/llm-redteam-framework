@@ -414,9 +414,20 @@
 
     function tableFallback(targetId, labels, values, suffix) {
       const target = document.getElementById(targetId);
-      target.innerHTML = "<table class='table'><tbody>" + labels.map((label, i) =>
-        "<tr><td>" + label + "</td><td>" + values[i] + suffix + "</td></tr>"
-      ).join("") + "</tbody></table>";
+      const table = document.createElement("table");
+      table.className = "table";
+      const tbody = document.createElement("tbody");
+      labels.forEach((label, i) => {
+        const row = document.createElement("tr");
+        const left = document.createElement("td");
+        const right = document.createElement("td");
+        left.textContent = String(label);
+        right.textContent = String(values[i]) + String(suffix);
+        row.append(left, right);
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      target.replaceChildren(table);
     }
 
     function renderCharts() {
