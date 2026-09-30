@@ -537,3 +537,10 @@ If you take one thing from this repository: always measure your security tooling
 - **Security note:** The malicious prompt corpus is intentionally adversarial test data and was retained; detections in that corpus are expected evaluation behavior.
 - **Evidence boundary:** This update records repository and GitHub Actions evidence observed during the pass. It is not a claim of independent penetration testing, production deployment, or zero residual risk.
 <!-- repo-verification:end -->
+
+## Verification checkpoint — 2026-09-30
+
+- **Snapshot commit:** `82ea1670604de49c08b31b97f8fbd7dd009bfe6a`
+- **Status:** VERIFIED / GATE PENDING
+- **Evidence:** CI, Security Hygiene, Documentation Integrity, both LLM Security Scan runs, and Container Release completed successfully. The Production Gate was still pending at the snapshot.
+- This checkpoint is intentionally date-bounded. It does not claim zero vulnerabilities or universal production readiness.
