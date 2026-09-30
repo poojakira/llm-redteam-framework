@@ -104,12 +104,15 @@ jobs:
           history=subprocess.check_output(["git","log","--all","-p","--format=__COMMIT__%H","--no-ext-diff"],text=True,errors="replace")
           commit="unknown"
           current_path=""
-          synthetic_fixture_exceptions={
-              ("d053169c3733", "tests/test_cli_scan.py"),
-              ("d053169c3733", "tests/test_pii_extra.py"),
-              ("10ebf3a5eca4", "tests/test_cli_scan.py"),
-              ("ae80a230fe6d", "tests/test_cli_scan.py"),
-              ("be2bacfbbf4f", "tests/test_pii_extra.py"),
+          # Exact historical commits below were inspected: their only secret-shaped
+          # matches are deliberate synthetic detector fixtures in tests. Keep this
+          # allowlist commit- and signal-specific so unrelated historical matches
+          # in the same commits still fail the gate.
+          synthetic_fixture_signals={
+              ("10ebf3a5eca4", "OpenAI-style key"),
+              ("10ebf3a5eca4", "private key"),
+              ("ae80a230fe6d", "OpenAI-style key"),
+              ("be2bacfbbf4f", "OpenAI-style key"),
           }
           for line in history.splitlines():
               if line.startswith("__COMMIT__"):
@@ -119,17 +122,16 @@ jobs:
               if line.startswith("diff --git a/"):
                   current_path=line.split(" b/",1)[-1]
                   continue
-              # These two paths in this one inspected historical commit intentionally
-              # used realistic key-shaped strings to test credential detection.
-              if (commit,current_path) in synthetic_fixture_exceptions:
-                  continue
               if not line.startswith(("+","-")) or line.startswith(("+++","---")): continue
               upper=line.upper()
               for label,pattern in patterns.items():
                   match=pattern.search(line)
                   if match:
                       token=match.group(0); nearby=upper[max(0,match.start()-50):match.end()+50]
-                      if not any(word in token.upper() or word in nearby for word in placeholders):
+                      if (
+                          not any(word in token.upper() or word in nearby for word in placeholders)
+                          and (commit, label) not in synthetic_fixture_signals
+                      ):
                           failures.append(f"{commit}: possible historical {label}")
                       break
               match=assignment.search(line)
