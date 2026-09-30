@@ -1,18 +1,15 @@
-# Claim Ledger — Poster 05 (05-llm-redteam-framework)
+# Claim Ledger - Poster 05
 
-> Evidence status: This is a dated repository snapshot at the commit identified below. `VERIFIED_AT_SNAPSHOT` means verified for that commit and environment; it does not assert the same result on the latest `main`. Compare newer claims with the repository evidence before reuse.
-
-Apache-2.0 • Python 3.12 • HEAD d11f07b • verified 2026-09-26. Classification: VERIFIED_AT_SNAPSHOT / VERIFIED_HISTORICAL / PARTIAL / UNVERIFIED / UNSUPPORTED.
+> Verified code snapshot: `08b40538c00146981d450cad7af5cedd87b887b6`; successful CI run `36783655822`, 2026-09-30.
 
 | # | Claim | Classification | Evidence |
 |---|---|---|---|
-| 1 | Grouped-split F1 0.9714; random-split 1.0 | VERIFIED_AT_SNAPSHOT | results/scan_metrics.json (committed), pinned by tests/test_eval.py. |
-| 2 | OOD novel-phrasing F1 0.7188 (P 0.59 / R 0.92) | VERIFIED_AT_SNAPSHOT | scan_metrics.json; ~25-pt drop vs grouped = memorization. Negative result shown. |
-| 3 | External InjectionBench/JailbreakBench-style F1 ~0.98 | VERIFIED_AT_SNAPSHOT | scan_metrics.json; noted NOT a true OOD test (retains canonical markers). |
-| 4 | JailbreakBench behavior-screening F1 0.15 | VERIFIED_AT_SNAPSHOT | evidence/generated/jailbreakbench_behavior_screening.json; explicitly a different task (harmful-vs-benign). |
-| 5 | Real-world jailbreak detection rate / live-model defense | UNSUPPORTED (disclaimed) | README + evidence claim_boundary forbid; not claimed. |
+| 1 | 175 passed, 1 skipped | VERIFIED_AT_SNAPSHOT | Current-main Python 3.12 CI. |
+| 2 | 94.30% statement coverage | VERIFIED_AT_SNAPSHOT | Current-main Python 3.12 CI. |
+| 3 | Random-split F1 1.00 | VERIFIED_AT_SNAPSHOT | Pinned evaluation result; optimistic in-distribution baseline. |
+| 4 | Grouped-template F1 0.9714 | VERIFIED_AT_SNAPSHOT | Pinned grouped evaluation. |
+| 5 | Novel-phrasing OOD F1 0.7188, P 0.5897, R 0.92 | VERIFIED_AT_SNAPSHOT | Pinned OOD benchmark. |
+| 6 | Novel-phrasing false-positive rate 64% (16/25) | VERIFIED_AT_SNAPSHOT | Current README/evaluation artifact; important negative result. |
+| 7 | Real-world jailbreak-defense rate / live-model protection | UNSUPPORTED | Offline text-detector benchmark does not establish live model behavior. |
 
-## Policy applied
-- Only VERIFIED_AT_SNAPSHOT figures appear as prominent current results.
-- Historical/projected values are labeled (dashed box / explicit note).
-- Unsupported production/accuracy claims are omitted or shown in the red "NOT ESTABLISHED" box.
+The OOD result must remain the primary generalization claim.

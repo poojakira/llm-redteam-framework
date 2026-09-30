@@ -1,71 +1,66 @@
-# Research Brief — Poster 05
+# Research Brief - Poster 05
 
-> Evidence status: This is a dated repository snapshot at the commit identified below. `VERIFIED_AT_SNAPSHOT` means verified for that commit and environment; it does not assert the same result on the latest `main`. Compare newer claims with the repository evidence before reuse.
+> Evidence status: Refreshed against current code snapshot `08b40538c00146981d450cad7af5cedd87b887b6` and successful CI run `36783655822` on 2026-09-30.
 
 ## Repository
-`github.com/poojakira/llm-redteam-framework` (public, default branch `main`, primary language Python). Apache-2.0 • Python 3.12 • HEAD d11f07b • verified 2026-09-26
+
+`github.com/poojakira/llm-redteam-framework` - public, default branch `main`.
 
 ## Academic Project Title
+
 **Evaluating an Offline Detector Against Adversarial Prompt Attacks**
 
 ### Subtitle
+
 A Reproducible Framework for Prompt-Attack Generation and Defensive Evaluation
 
 ## One-Sentence Contribution
-A reproducible prompt-attack generation + evaluation framework that reports both the in-distribution headline (grouped F1 0.97) and the OOD paraphrase result (F1 0.72), quantifying the ~25-point drop attributable to memorized surface structure.
 
-## Problem Statement
-A detector benchmarked only on its own attack templates can look near-perfect while failing on rephrased, out-of-distribution attacks. Reporting the in-distribution number alone overstates real defense. This framework generates attacks and evaluates a detector with an explicit OOD generalization split.
+A reproducible offline prompt-attack evaluation framework that reports both the stronger in-distribution result and the weaker novel-phrasing result, making the detector's generalization gap explicit instead of hiding it behind a random split.
 
-## Threat Model
-Chain: ATTACK TAXONOMY -> PROMPT MUTATION -> TARGET DETECTOR -> EVALUATION BOUNDARY -> P / R / F1 + OOD.
-Adversary capability: rephrases known attacks into novel wording; Assumptions: offline detector; fixed corpus; seed 42; Out of scope: live model defense; real deployment rate; semantic understanding; Residual risk: OOD drop; benchmark corpus not exhaustive.
+## Method
 
-## Research / Engineering Question
-> Does a prompt-attack detector generalize beyond the templates it was tuned on — and how much of its headline score is memorized surface structure?
+1. Generate adversarial and benign prompt corpora across defined attack categories.
+2. Train/evaluate the offline TF-IDF + Logistic Regression detector.
+3. Compare random, grouped-template, structural-fixture, and novel-phrasing OOD evaluations.
+4. Emit JSON/SARIF evidence for CI.
+5. Keep live-model behavior claims out of scope unless separately measured.
 
-## Objective
-Determine how much a prompt-attack detector's score is template memorization by measuring a grouped in-distribution vs OOD paraphrase split.
+## Current Verified Evidence
 
-## Engineering Sub-Objectives
-O1 — Attack taxonomy + mutation
-O2 — Grouped template split (seed 42)
-O3 — OOD novel-phrasing benchmark
-O4 — External InjectionBench/JailbreakBench
+Current-main Python 3.12 CI reports:
 
-## Methodology
-1 Taxonomy (attack types) -> 2 Mutate (paraphrase) -> 3 Score (detector) -> 4 Group (split seed42) -> 5 OOD (novel phrasing) -> 6·7 External (bench + report)
+- **175 passed, 1 skipped**.
+- **94.30% statement coverage**; CI gate is 90%.
+- Current benchmark values remain pinned:
+  - random split F1 **1.00**
+  - grouped-template F1 **0.9714**
+  - novel-phrasing OOD F1 **0.7188**
+  - novel-phrasing precision **0.5897**
+  - novel-phrasing recall **0.92**
+  - novel-phrasing false-positive rate **64% (16/25)**
+- Lint, type checking, dependency audit, performance gate, external validation, and comparable OOD benchmark jobs completed successfully.
 
-## Evidence at Poster Snapshot + Claim Ledger
-- **VERIFIED_AT_SNAPSHOT** — Grouped-split F1 0.9714; random-split 1.0 — results/scan_metrics.json (committed), pinned by tests/test_eval.py.
-- **VERIFIED_AT_SNAPSHOT** — OOD novel-phrasing F1 0.7188 (P 0.59 / R 0.92) — scan_metrics.json; ~25-pt drop vs grouped = memorization. Negative result shown.
-- **VERIFIED_AT_SNAPSHOT** — External InjectionBench/JailbreakBench-style F1 ~0.98 — scan_metrics.json; noted NOT a true OOD test (retains canonical markers).
-- **VERIFIED_AT_SNAPSHOT** — JailbreakBench behavior-screening F1 0.15 — evidence/generated/jailbreakbench_behavior_screening.json; explicitly a different task (harmful-vs-benign).
-- **UNSUPPORTED (disclaimed)** — Real-world jailbreak detection rate / live-model defense — README + evidence claim_boundary forbid; not claimed.
+## Important Negative Result
 
-## Important Negative / Honest Results
-See RESULTS panel: OOD is the honest test; the ~25-pt drop from grouped is memorized surface structure. scan_metrics.json.
+The novel-phrasing result is the key generalization check: F1 falls from **0.9714** on grouped templates to **0.7188** on OOD paraphrases, while false positives rise sharply. This is evidence of lexical/template dependence, not a production-grade semantic detector.
 
 ## Limitations
-1. OOD F1 0.72 — much of headline is memorized.
-2. External fixtures keep canonical markers (not true OOD).
-3. Offline detector; no live-model evaluation.
-4. Corpus is finite; not exhaustive of real attacks.
-5. Behavior-screening F1 (0.15) is a different task.
 
-## Future Work
-• True held-out semantic OOD corpus.
-• Live-model guardrail evaluation.
-• Larger, diverse attack taxonomy.
-• Human-adversary red-team comparison.
-• Calibrated decision thresholds.
+- Offline detector evaluation does not prove whether a live LLM would follow an injected instruction.
+- English/template coverage is finite.
+- Structural fixtures are not equivalent to true OOD natural-language paraphrases.
+- No real-world jailbreak-defense rate is claimed.
 
 ## Reproducibility
-```
-pytest tests/
+
+```bash
+git clone https://github.com/poojakira/llm-redteam-framework.git
+cd llm-redteam-framework
+git checkout 08b40538c00146981d450cad7af5cedd87b887b6
+python -m pip install -e ".[dev]"
+pytest tests/ -q --cov=redteam --cov-report=term
 python benchmarks/ood_novel_phrasings.py
 ```
-Evidence: results/scan_metrics.json, evidence/generated/
 
-## References
-[1] OWASP Top 10 for LLM Apps (LLM01) · [2] JailbreakBench (Chao et al. 2024) · [3] MITRE ATLAS · [4] Greshake et al. (2023) Indirect Injection · [5] NIST AI RMF 1.0 · [6] scikit-learn
+Expected CI evidence: **175 passed, 1 skipped**, **94.30% coverage**.

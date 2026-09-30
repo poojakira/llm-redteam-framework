@@ -1,12 +1,18 @@
-# Reproduce the Work — Poster 05
+# Reproduce the Work - Poster 05
 
-> Evidence status: This is a dated repository snapshot at the commit identified below. `VERIFIED_AT_SNAPSHOT` means verified for that commit and environment; it does not assert the same result on the latest `main`. Compare newer claims with the repository evidence before reuse.
+**Repository:** `github.com/poojakira/llm-redteam-framework`  
+**Verified code snapshot:** `08b40538c00146981d450cad7af5cedd87b887b6`  
+**CI run:** `36783655822`
 
-**Repository:** `github.com/poojakira/llm-redteam-framework` · Apache-2.0 • Python 3.12 • HEAD d11f07b • verified 2026-09-26
-
-```
-pytest tests/
+```bash
+git clone https://github.com/poojakira/llm-redteam-framework.git
+cd llm-redteam-framework
+git checkout 08b40538c00146981d450cad7af5cedd87b887b6
+python -m pip install -e ".[dev]"
+pytest tests/ -q --cov=redteam --cov-report=term
 python benchmarks/ood_novel_phrasings.py
 ```
 
-Evidence artifacts: results/scan_metrics.json, evidence/generated/
+Expected CI evidence: **175 passed, 1 skipped**, **94.30% statement coverage**.
+
+Pinned evaluation references: grouped F1 **0.9714**; novel-phrasing OOD F1 **0.7188**.
