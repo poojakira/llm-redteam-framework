@@ -17,3 +17,12 @@ Streaming body limit rejects chunked overflow before parsing. Credentialed live 
 ## Deployment and remaining limits
 
 The API key authorizes the same scan/metrics operations for every holder; there is no tenant or role policy. Rate limits are per process and require a shared ingress limiter for multiple workers. DNS validation is not connection-pinned: use an egress firewall for live endpoint scans. Timeout cancellation does not terminate running detector threads; production workloads need killable worker isolation.
+
+<!-- hardening-followup-20260930:start -->
+## Follow-up hardening — 2026-09-30
+
+- GitHub Actions were hardened on `main`: checkout credentials are not persisted, build-provenance actions were changed from floating tags to immutable commit SHAs, and the obsolete one-time write-enabled formatter workflow was removed.
+- `scripts/workflow_security_scan.py` now enforces immutable external action references, blocks `pull_request_target` and `workflow_run`, requires non-persisted checkout credentials, and rejects pipe-to-shell execution in workflows.
+- Existing pickle model loading remains fail-closed by default: deserialization requires an explicit `trusted=True` after checksum verification, while documentation correctly notes that a colocated checksum is not provenance.
+- Remaining tenant authorization, multi-worker shared rate limiting, egress firewalling, and killable-worker isolation are deployment/architecture limits and are not represented as completed controls.
+<!-- hardening-followup-20260930:end -->
