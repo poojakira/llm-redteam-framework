@@ -113,7 +113,9 @@ async def _request_size_limit(request: Request, call_next):
         if content_length:
             try:
                 if int(content_length) > _MAX_REQUEST_BYTES:
-                    return JSONResponse(status_code=413, content={"detail": "Request body too large"})
+                    return JSONResponse(
+                        status_code=413, content={"detail": "Request body too large"}
+                    )
             except ValueError:
                 return JSONResponse(status_code=400, content={"detail": "Invalid Content-Length"})
         body = await request.body()

@@ -81,7 +81,9 @@ def _validated_base_url(base_url: str, *, allow_private: bool = False) -> str:
     try:
         addresses = {
             ipaddress.ip_address(item[4][0])
-            for item in socket.getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
+            for item in socket.getaddrinfo(
+                parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80)
+            )
         }
     except (OSError, ValueError) as exc:
         raise ValueError("endpoint host could not be resolved safely") from exc
@@ -96,7 +98,9 @@ def _validated_base_url(base_url: str, *, allow_private: bool = False) -> str:
                 or address.is_reserved
                 or address.is_unspecified
             ):
-                raise ValueError("private, local, reserved, or metadata-network endpoints require explicit allow_private=True")
+                raise ValueError(
+                    "private, local, reserved, or metadata-network endpoints require explicit allow_private=True"
+                )
 
     return base_url.rstrip("/")
 
