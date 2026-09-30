@@ -80,8 +80,13 @@ def _is_rate_limited(client_ip: str) -> bool:
 # when a deployment forgets its secret.
 _API_KEY = os.environ.get("REDTEAM_API_KEY", "")
 _ENFORCEMENT_MODE = os.environ.get("REDTEAM_ENFORCEMENT_MODE", "shadow").strip().lower()
+_ENVIRONMENT = os.environ.get("REDTEAM_ENVIRONMENT", "development").strip().lower()
 if _ENFORCEMENT_MODE not in {"shadow", "block"}:
     raise RuntimeError("REDTEAM_ENFORCEMENT_MODE must be 'shadow' or 'block'")
+if _MAX_REQUEST_BYTES < 1024 or _MAX_REQUEST_BYTES > 4 * 1024 * 1024:
+    raise RuntimeError("REDTEAM_MAX_REQUEST_BYTES must be between 1 KiB and 4 MiB")
+if _ENVIRONMENT == "production" and _ENFORCEMENT_MODE != "block":
+    raise RuntimeError("REDTEAM_ENFORCEMENT_MODE must be 'block' in production")
 
 
 def _check_api_key(request: Request) -> str | None:
@@ -99,6 +104,26 @@ app = FastAPI(
     version="1.0.0",
     description="Scan LLM prompt/response pairs for security findings.",
 )
+
+
+@app.middleware("http")
+async def _request_security_boundary(request: Request, call_next):
+    if request.method in {"POST", "PUT", "PATCH"}:
+        declared = request.headers.get("content-length")
+        if declared:
+            try:
+                if int(declared) > _MAX_REQUEST_BYTES:
+                    return JSONResponse(status_code=413, content={"error": "request too large"})
+            except ValueError:
+                return JSONResponse(status_code=400, content={"error": "invalid content length"})
+        body = await request.body()
+        if len(body) > _MAX_REQUEST_BYTES:
+            return JSONResponse(status_code=413, content={"error": "request too large"})
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 
@@ -158,14 +183,27 @@ _emb_detector = EmbeddingSimilarityDetector()
 
 
 class ScanRequest(BaseModel):
-    prompt: str = Field(..., description="The user prompt sent to the LLM.")
-    response: str = Field("", description="The LLM response (optional).")
+    prompt: str = Field(
+        ...,
+        min_length=1,
+        max_length=_MAX_PROMPT_LENGTH,
+        description="The user prompt sent to the LLM.",
+    )
+    response: str = Field(
+        "",
+        max_length=_MAX_TOTAL_INPUT_CHARS,
+        description="The LLM response (optional).",
+    )
     context_docs: list[str] = Field(
         default_factory=list,
         max_length=_MAX_CONTEXT_DOCS,
         description="RAG context documents injected alongside the prompt.",
     )
-    session_id: str = Field("", description="Optional session identifier for canary tracking.")
+    session_id: str = Field(
+        "",
+        max_length=128,
+        description="Optional session identifier for canary tracking.",
+    )
 
 
 class Finding(BaseModel):
