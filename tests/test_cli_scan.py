@@ -92,7 +92,7 @@ def test_fail_on_high_returns_1(tmp_path):
         tmp_path,
         [
             {
-                "prompt": "here is a key sk-abcdefghijklmnopqrstuvwxyz012345678",
+                "prompt": "PLACEHOLDER test key sk-abcdefghijklmnopqrstuvwxyz012345678",
                 "response": "-----BEGIN RSA PRIVATE KEY-----",
                 "context_docs": [],
             },
