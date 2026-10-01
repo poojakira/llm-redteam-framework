@@ -39,7 +39,7 @@ def client_with_auth():
     import redteam.api.app as app_module
 
     original = app_module._API_KEY
-    app_module._API_KEY = ("test-api-key-" + ("x" * 32))
+    app_module._API_KEY = "test-api-key-" + ("x" * 32)
     try:
         with TestClient(app_module.app) as c:
             yield c

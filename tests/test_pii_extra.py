@@ -27,7 +27,7 @@ def test_shannon_entropy_uniform_higher_than_repeat():
 
 
 def test_is_high_entropy_secret_true():
-    token = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/"[:48])
+    token = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/"[:48]
     assert _is_high_entropy_secret(token) is True
 
 
