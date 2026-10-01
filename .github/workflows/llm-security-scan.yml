@@ -1,14 +1,7 @@
 name: LLM Security Scan
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-  schedule:
-    # Daily scan at 06:00 UTC  --  continuous assurance, not point-in-time
-    - cron: "0 6 * * *"
-
+  workflow_dispatch:
 permissions:
   contents: read
   security-events: write   # Required to upload SARIF to GitHub Code Scanning
