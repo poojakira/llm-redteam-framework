@@ -271,7 +271,7 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
         raise HTTPException(status_code=401, detail=auth_error)
 
     peer = request.client.host if request.client else "unknown"
-    material = f"{peer}\0{_API_KEY}".encode("utf-8")
+    material = f"{peer}\0{_API_KEY}".encode()
     rate_key = hmac.new(_RATE_KEY_SECRET, material, hashlib.sha256).hexdigest()[:24]
     if _is_rate_limited(rate_key):
         raise HTTPException(
