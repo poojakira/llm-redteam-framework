@@ -19,7 +19,6 @@ development-only key rather than relying on an anonymous production mode.
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import hmac
 import logging
 import os
@@ -55,7 +54,6 @@ _MAX_CONTEXT_DOCS = _config.get("rate_limiting", {}).get("max_context_documents"
 _MAX_TOTAL_INPUT_CHARS = _config.get("rate_limiting", {}).get("max_total_input_chars", 131072)
 _MAX_REQUEST_BYTES = int(os.environ.get("REDTEAM_MAX_REQUEST_BYTES", str(256 * 1024)))
 _request_log: dict[str, list[float]] = defaultdict(list)
-_RATE_KEY_SECRET = os.urandom(32)
 _SCAN_TIMEOUT_SECONDS = float(os.environ.get("REDTEAM_SCAN_TIMEOUT_SECONDS", "30"))
 _MAX_CONCURRENT_SCANS = int(os.environ.get("REDTEAM_MAX_CONCURRENT_SCANS", "8"))
 if _SCAN_TIMEOUT_SECONDS <= 0:
@@ -270,9 +268,9 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
     if auth_error:
         raise HTTPException(status_code=401, detail=auth_error)
 
-    peer = request.client.host if request.client else "unknown"
-    material = f"{peer}\0{_API_KEY}".encode()
-    rate_key = hmac.new(_RATE_KEY_SECRET, material, hashlib.sha256).hexdigest()[:24]
+    # Authentication is enforced before throttling. Keep credentials out of
+    # limiter identifiers and bucket the authenticated client by transport peer.
+    rate_key = request.client.host if request.client else "unknown"
     if _is_rate_limited(rate_key):
         raise HTTPException(
             status_code=429,
