@@ -389,7 +389,7 @@ Then include the key in requests:
 ```bash
 curl -X POST http://localhost:8000/scan \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: your-secret-key-here" \
+  -H "X-API-Key: ${REDTEAM_API_KEY}" \
   -d '{"prompt": "test prompt"}'
 ```
 

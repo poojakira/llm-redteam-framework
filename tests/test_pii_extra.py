@@ -27,7 +27,7 @@ def test_shannon_entropy_uniform_higher_than_repeat():
 
 
 def test_is_high_entropy_secret_true():
-    token = "aB3xY9kLmN7pQ2rS5tU8wZ1vC4dE6fG"
+    token = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/"[:48])
     assert _is_high_entropy_secret(token) is True
 
 
@@ -49,7 +49,7 @@ def test_detects_openai_key():
 def test_detects_aws_key_and_secret():
     det = PIILeakageDetector(use_spacy=False)
     findings = det.scan(
-        "AKIAIOSFODNN7EXAMPLE and aws_secret_access_key=wJalrXUtnFEMIabcdefghij12345"
+        f"aws_access_key_id={'AKIA' + ('A1' * 8)} aws_secret_access_key={'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[:40]}"
     )
     ids = _rule_ids(findings)
     assert "SEC-AWS-KEY" in ids

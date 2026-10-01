@@ -34,7 +34,7 @@ def client_with_auth():
     import redteam.api.app as app_module
 
     original_key = app_module._API_KEY
-    app_module._API_KEY = "test-secret-key-at-least-32-characters-long"
+    app_module._API_KEY = ("test-api-key-" + ("x" * 32))
     try:
         with TestClient(app_module.app) as c:
             yield c
@@ -48,14 +48,14 @@ class TestRateLimiter:
             resp = client_with_auth.post(
                 "/scan",
                 json={"prompt": "Hello, how are you?"},
-                headers={"X-API-Key": "test-secret-key-at-least-32-characters-long"},
+                headers={"X-API-Key": ("test-api-key-" + ("x" * 32))},
             )
             assert resp.status_code != 429
 
     def test_blocks_after_exceeding_limit(self, client_with_auth):
         from redteam.api.app import _RATE_LIMIT
 
-        headers = {"X-API-Key": "test-secret-key-at-least-32-characters-long"}
+        headers = {"X-API-Key": ("test-api-key-" + ("x" * 32))}
         for _ in range(_RATE_LIMIT):
             client_with_auth.post("/scan", json={"prompt": "test"}, headers=headers)
         resp = client_with_auth.post(
@@ -84,7 +84,7 @@ class TestAPIKeyAuth:
         resp = client_with_auth.post(
             "/scan",
             json={"prompt": "test prompt"},
-            headers={"X-API-Key": "test-secret-key-at-least-32-characters-long"},
+            headers={"X-API-Key": ("test-api-key-" + ("x" * 32))},
         )
         assert resp.status_code != 401
 
@@ -96,7 +96,7 @@ class TestAPIKeyAuth:
         assert client_with_auth.get("/metrics").status_code == 401
         assert (
             client_with_auth.get(
-                "/metrics", headers={"X-API-Key": "test-secret-key-at-least-32-characters-long"}
+                "/metrics", headers={"X-API-Key": ("test-api-key-" + ("x" * 32))}
             ).status_code
             == 200
         )
@@ -110,7 +110,7 @@ class TestInputLengthValidation:
         resp = client_with_auth.post(
             "/scan",
             json={"prompt": oversized_prompt},
-            headers={"X-API-Key": "test-secret-key-at-least-32-characters-long"},
+            headers={"X-API-Key": ("test-api-key-" + ("x" * 32))},
         )
         assert resp.status_code == 413
 
@@ -118,7 +118,7 @@ class TestInputLengthValidation:
         resp = client_with_auth.post(
             "/scan",
             json={"prompt": "This is a normal length prompt."},
-            headers={"X-API-Key": "test-secret-key-at-least-32-characters-long"},
+            headers={"X-API-Key": ("test-api-key-" + ("x" * 32))},
         )
         assert resp.status_code != 413
 
@@ -129,7 +129,7 @@ class TestInputLengthValidation:
         resp = client_with_auth.post(
             "/scan",
             json={"prompt": exact_prompt},
-            headers={"X-API-Key": "test-secret-key-at-least-32-characters-long"},
+            headers={"X-API-Key": ("test-api-key-" + ("x" * 32))},
         )
         assert resp.status_code != 413
 
@@ -142,6 +142,6 @@ class TestInputLengthValidation:
                 "prompt": "scan",
                 "context_docs": ["A" * (_MAX_TOTAL_INPUT_CHARS + 1)],
             },
-            headers={"X-API-Key": "test-secret-key-at-least-32-characters-long"},
+            headers={"X-API-Key": ("test-api-key-" + ("x" * 32))},
         )
         assert resp.status_code == 413

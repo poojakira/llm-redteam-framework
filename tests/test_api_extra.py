@@ -39,7 +39,7 @@ def client_with_auth():
     import redteam.api.app as app_module
 
     original = app_module._API_KEY
-    app_module._API_KEY = "test-secret-key-at-least-32-characters-long"
+    app_module._API_KEY = ("test-api-key-" + ("x" * 32))
     try:
         with TestClient(app_module.app) as c:
             yield c
@@ -48,7 +48,7 @@ def client_with_auth():
 
 
 def _auth_headers() -> dict[str, str]:
-    return {"X-API-Key": "test-secret-key-at-least-32-characters-long"}
+    return {"X-API-Key": ("test-api-key-" + ("x" * 32))}
 
 
 def test_health(client_no_auth):
