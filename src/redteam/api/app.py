@@ -55,6 +55,7 @@ _MAX_CONTEXT_DOCS = _config.get("rate_limiting", {}).get("max_context_documents"
 _MAX_TOTAL_INPUT_CHARS = _config.get("rate_limiting", {}).get("max_total_input_chars", 131072)
 _MAX_REQUEST_BYTES = int(os.environ.get("REDTEAM_MAX_REQUEST_BYTES", str(256 * 1024)))
 _request_log: dict[str, list[float]] = defaultdict(list)
+_RATE_KEY_SECRET = os.urandom(32)
 _SCAN_TIMEOUT_SECONDS = float(os.environ.get("REDTEAM_SCAN_TIMEOUT_SECONDS", "30"))
 _MAX_CONCURRENT_SCANS = int(os.environ.get("REDTEAM_MAX_CONCURRENT_SCANS", "8"))
 if _SCAN_TIMEOUT_SECONDS <= 0:
@@ -270,7 +271,8 @@ async def scan(req: ScanRequest, request: Request) -> ScanResponse:
         raise HTTPException(status_code=401, detail=auth_error)
 
     peer = request.client.host if request.client else "unknown"
-    rate_key = hashlib.sha256(f"{peer}\0{_API_KEY}".encode()).hexdigest()[:24]
+    material = f"{peer}\0{_API_KEY}".encode("utf-8")
+    rate_key = hmac.new(_RATE_KEY_SECRET, material, hashlib.sha256).hexdigest()[:24]
     if _is_rate_limited(rate_key):
         raise HTTPException(
             status_code=429,

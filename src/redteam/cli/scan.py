@@ -246,8 +246,11 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     if args.verbose:
-        for f in findings:
-            print(json.dumps(f, default=str))
+        # Do not emit raw evidence, prompt/response text, secrets, or model output.
+        safe_fields = ("rule_id", "id", "severity", "detector", "category")
+        for finding in findings:
+            safe = {key: finding[key] for key in safe_fields if key in finding}
+            print(json.dumps(safe, default=str))
 
     if is_demo:
         # Demo mode always exits 0  --  we never want to block CI on a demo
