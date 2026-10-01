@@ -85,8 +85,9 @@ if _ENFORCEMENT_MODE not in {"shadow", "block"}:
     raise RuntimeError("REDTEAM_ENFORCEMENT_MODE must be 'shadow' or 'block'")
 if _MAX_REQUEST_BYTES < 1024 or _MAX_REQUEST_BYTES > 4 * 1024 * 1024:
     raise RuntimeError("REDTEAM_MAX_REQUEST_BYTES must be between 1 KiB and 4 MiB")
-if _ENVIRONMENT == "production" and _ENFORCEMENT_MODE != "block":
-    raise RuntimeError("REDTEAM_ENFORCEMENT_MODE must be 'block' in production")
+if _ENVIRONMENT == "production":
+    if _ENFORCEMENT_MODE == "shadow":
+        raise RuntimeError("REDTEAM_ENFORCEMENT_MODE must be 'block' in production")
 
 
 def _check_api_key(request: Request) -> str | None:
