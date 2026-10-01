@@ -87,9 +87,6 @@ _RULES: list[dict[str, Any]] = [
     },
 ]
 
-# Build a lookup by rule_id prefix for fast matching
-_RULE_ID_MAP: dict[str, dict[str, Any]] = {r["id"]: r for r in _RULES}
-
 
 def findings_to_sarif(
     scan_id: str,
