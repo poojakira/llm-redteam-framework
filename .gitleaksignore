@@ -1,0 +1,17 @@
+# Fingerprint-scoped historical triage only. Do not add broad path or rule exclusions.
+55f6da88e9ae1e70f91feb5c48df16bcf3c0c4ef:tests/test_api_extra.py:generic-api-key:42
+55f6da88e9ae1e70f91feb5c48df16bcf3c0c4ef:tests/test_api_extra.py:generic-api-key:51
+67a697d630bc63ff91a1d33019b65a3b7ae6ae2b:README.md:curl-auth-header:323
+67a697d630bc63ff91a1d33019b65a3b7ae6ae2b:RUNBOOK.md:curl-auth-header:56
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:111
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:119
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:130
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:143
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:37
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:51
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:58
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:87
+6a1c1decb74551a1010f8e962119bb78cf34d049:tests/test_api_security.py:generic-api-key:98
+d053169c37331dcaec0704f81b37e338bf0c127c:tests/test_pii_extra.py:generic-api-key:30
+d053169c37331dcaec0704f81b37e338bf0c127c:tests/test_pii_extra.py:generic-api-key:52
+fa27c2c1d2d88832d3fdeeafefa62bd590e51b37:tests/test_api_security.py:generic-api-key:99
