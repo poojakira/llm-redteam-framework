@@ -1,6 +1,11 @@
 from __future__ import annotations
+
+import html
+import re
+import shutil
+import subprocess
+import sys
 from pathlib import Path
-import html, re, shutil, subprocess, sys
 
 repo = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parents[1]).resolve()
 poster = repo / "poster"
@@ -88,15 +93,19 @@ def bullets(xs: list[str], cls="") -> str:
     return '<ul class="'+cls+'">' + "".join("<li>"+esc(x)+"</li>" for x in xs) + "</ul>"
 
 def title_class(s: str) -> str:
-    if len(s) > 85: return "title xlong"
-    if len(s) > 64: return "title long"
+    if len(s) > 85:
+        return "title xlong"
+    if len(s) > 64:
+        return "title long"
     return "title"
 
 metric_cards=""
 for k,v in primary_metrics:
     vc="metric-value"
-    if len(v)>22: vc+=" tiny"
-    elif len(v)>14: vc+=" small"
+    if len(v) > 22:
+        vc += " tiny"
+    elif len(v) > 14:
+        vc += " small"
     metric_cards += f'<div class="metric"><div class="{vc}">{esc(v)}</div><div class="metric-label">{esc(k)}</div></div>'
 if not metric_cards:
     metric_cards='<div class="metric"><div class="metric-value">Verified</div><div class="metric-label">Repository evidence</div></div>'
@@ -205,7 +214,8 @@ html_path=poster/"_poster_render.html"
 html_path.write_text(doc,encoding="utf-8")
 browsers=[Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")]
 browser=next((p for p in browsers if p.exists()),None)
-if browser is None: raise SystemExit("browser not found")
+if browser is None:
+    raise SystemExit("browser not found")
 pdf=poster/"poster_36x48.pdf"
 png=poster/"poster.png"
 profile=poster/"_poster_profile"
@@ -214,9 +224,10 @@ subprocess.run([str(browser),"--headless=new","--disable-gpu",f"--user-data-dir=
 try:
     import fitz
 except Exception as exc:
-    raise SystemExit(f"PyMuPDF required: {exc}")
+    raise SystemExit(f"PyMuPDF required: {exc}") from exc
 d=fitz.open(pdf)
-if len(d)!=1: raise SystemExit(f"poster must be one page, got {len(d)}")
+if len(d) != 1:
+    raise SystemExit(f"poster must be one page, got {len(d)}")
 page=d[0]
 target_w=1800
 scale=target_w/page.rect.width
