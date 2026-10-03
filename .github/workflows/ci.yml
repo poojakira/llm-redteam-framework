@@ -110,6 +110,9 @@ jobs:
       - name: Run comparable OOD benchmark
         run: python benchmarks/ood_novel_phrasings.py
 
+      - name: Enforce product evidence gate
+        run: python benchmarks/product_gate.py
+
       - name: Upload benchmark results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
