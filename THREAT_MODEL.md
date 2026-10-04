@@ -131,7 +131,7 @@ Encoding attacks transform malicious payloads to bypass text-pattern detectors.
 
 | Technique | Description | OWASP | MITRE ATLAS |
 |-----------|-------------|-------|-------------|
-| Tool Invocation Injection | Prompt tricks model into calling tools | LLM07 | AML.T0054 |
+| Tool Invocation Injection | Prompt tricks model into calling tools | LLM08 | AML.T0054 |
 | Parameter Injection | Malicious values in tool call arguments | LLM07 | AML.T0054 |
 | Chain-of-Tool Abuse | Sequences tool calls to achieve forbidden goal | LLM07 | AML.T0054 |
 | Plugin Credential Theft | Exfiltrates auth tokens via tool responses | LLM07 | AML.T0054 |
@@ -353,7 +353,7 @@ Layer 5: Monitoring & Response
 | LLM06 | PII/secret detection in outputs | ✅ Implemented |
 | LLM07 | RAG document scanning | ✅ Implemented |
 | LLM07 | Canary token tracking | ✅ Implemented |
-| LLM08 | Tool permission boundary | ❌ Planned |
+| LLM08 | Deterministic tool permission boundary | ✅ Implemented |
 
 ---
 
