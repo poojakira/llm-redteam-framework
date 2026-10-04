@@ -151,7 +151,7 @@ detection difficulty on a 5-point scale.
 
 ## Category 4: Indirect / Embedded Injection
 
-**OWASP Mapping**: LLM07 — Insecure Plugin Design / RAG Poisoning
+**OWASP 2025 Mapping**: LLM01 — Prompt Injection (indirect via retrieved content)
 **MITRE ATLAS**: AML.T0054
 **Framework Generator**: `gen_indirect_embed`
 
@@ -241,7 +241,7 @@ detection difficulty on a 5-point scale.
 
 ## Category 6: Multi-Step / Crescendo Attacks
 
-**OWASP Mapping**: LLM06 — Sensitive Information Disclosure
+**OWASP 2025 Mapping**: LLM01 — Prompt Injection (multi-step)
 **MITRE ATLAS**: AML.T0051
 **Framework Generator**: `gen_multi_step`
 
@@ -321,9 +321,9 @@ detection difficulty on a 5-point scale.
 | Direct Override | `gen_direct_override` | LLM01 | AML.T0051 | HIGH |
 | Role Switch | `gen_role_switch` | LLM01 | AML.T0051 | HIGH |
 | Context Escape | `gen_context_escape` | LLM01 | AML.T0051 | MEDIUM |
-| Indirect Embed | `gen_indirect_embed` | LLM07 | AML.T0054 | MEDIUM |
+| Indirect Embed | `gen_indirect_embed` | LLM01 | AML.T0054 | MEDIUM |
 | Obfuscation | `gen_obfuscation` | LLM01 | AML.T0051 | HIGH |
-| Multi-Step | `gen_multi_step` | LLM06 | AML.T0051 | MEDIUM |
+| Multi-Step | `gen_multi_step` | LLM01 | AML.T0051 | MEDIUM |
 | Benign | `gen_benign` | N/A | N/A | NONE |
 
 ---
@@ -360,4 +360,4 @@ detection difficulty on a 5-point scale.
 - Framework source: `src/redteam/generators/categories.py`
 - OWASP mapping: `owasp_llm_mapping.yaml`
 - MITRE ATLAS: https://atlas.mitre.org/
-- OWASP LLM Top 10: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+- OWASP LLM Top 10: https://genai.owasp.org/llm-top-10/
