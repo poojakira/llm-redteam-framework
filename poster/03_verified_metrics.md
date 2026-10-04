@@ -5,9 +5,9 @@
 
 | Metric | Current value |
 |---|---:|
-| Tests passed | **175** |
+| Tests passed | **182** |
 | Tests skipped | **1** |
-| Statement coverage | **94.30%** |
+| Statement coverage | **94.22%** |
 | Random-split F1 | **1.00** |
 | Grouped-template F1 | **0.9714** |
 | Novel-phrasing OOD F1 | **0.7188** |

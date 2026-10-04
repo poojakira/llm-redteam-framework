@@ -13,6 +13,6 @@ pytest tests/ -q --cov=redteam --cov-report=term
 python benchmarks/ood_novel_phrasings.py
 ```
 
-Expected CI evidence: **175 passed, 1 skipped**, **94.30% statement coverage**.
+Expected CI evidence: **182 passed, 1 skipped**, **94.22% statement coverage**.
 
 Pinned evaluation references: grouped F1 **0.9714**; novel-phrasing OOD F1 **0.7188**.

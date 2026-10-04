@@ -37,6 +37,7 @@ from redteam.api.body_limit import RequestBodyLimit
 from redteam.detectors.embedding_similarity import EmbeddingSimilarityDetector
 from redteam.detectors.pii_leakage import PIILeakageDetector
 from redteam.detectors.rag_poisoning import RAGPoisoningDetector
+from redteam.detectors.tool_permissions import ToolPermissionBoundaryDetector
 from redteam.output.sarif import findings_to_sarif
 
 logger = logging.getLogger(__name__)
@@ -154,6 +155,12 @@ SCAN_LATENCY = _get_or_create_metric(
 _pii_detector = PIILeakageDetector()
 _rag_detector = RAGPoisoningDetector()
 _emb_detector = EmbeddingSimilarityDetector()
+_tool_detector = ToolPermissionBoundaryDetector()
+
+
+class ToolCall(BaseModel):
+    name: str = Field(..., min_length=1, max_length=128)
+    arguments: dict[str, Any] = Field(default_factory=dict)
 
 
 class ScanRequest(BaseModel):
@@ -168,6 +175,20 @@ class ScanRequest(BaseModel):
         "",
         max_length=128,
         description="Optional session identifier for canary tracking.",
+    )
+    tool_calls: list[ToolCall] = Field(
+        default_factory=list,
+        max_length=64,
+        description="Agent tool calls proposed or emitted for policy-boundary assessment.",
+    )
+    allowed_tools: list[str] = Field(
+        default_factory=list,
+        max_length=128,
+        description="Exact least-privilege tool names permitted for this agent/workflow.",
+    )
+    denied_argument_keys: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Per-tool argument keys that are explicitly forbidden.",
     )
 
 
@@ -200,19 +221,19 @@ def _run_detectors(req: ScanRequest) -> list[Finding]:
                 severity=r["severity"],
                 message=r["message"],
                 detector="pii_leakage",
-                owasp_llm_id="LLM06",
+                owasp_llm_id="LLM02",
             )
         )
 
     if req.context_docs:
-        for r in _rag_detector.scan(req.prompt, req.context_docs):
+        for r in _rag_detector.scan(req.prompt, req.context_docs, req.response):
             findings.append(
                 Finding(
                     rule_id=r["rule_id"],
                     severity=r["severity"],
                     message=r["message"],
                     detector="rag_poisoning",
-                    owasp_llm_id="LLM07",
+                    owasp_llm_id=("LLM02" if r["rule_id"] == "LLM02-CanaryLeakage" else "LLM04"),
                 )
             )
 
@@ -226,6 +247,22 @@ def _run_detectors(req: ScanRequest) -> list[Finding]:
                 owasp_llm_id="LLM01",
             )
         )
+
+    if req.tool_calls:
+        for r in _tool_detector.scan(
+            [call.model_dump() for call in req.tool_calls],
+            req.allowed_tools,
+            req.denied_argument_keys,
+        ):
+            findings.append(
+                Finding(
+                    rule_id=r["rule_id"],
+                    severity=r["severity"],
+                    message=r["message"],
+                    detector="tool_permission_boundary",
+                    owasp_llm_id="LLM06",
+                )
+            )
 
     return findings
 

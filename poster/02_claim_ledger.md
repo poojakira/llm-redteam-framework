@@ -4,8 +4,8 @@
 
 | # | Claim | Classification | Evidence |
 |---|---|---|---|
-| 1 | 175 passed, 1 skipped | VERIFIED_AT_SNAPSHOT | Current-main Python 3.12 CI. |
-| 2 | 94.30% statement coverage | VERIFIED_AT_SNAPSHOT | Current-main Python 3.12 CI. |
+| 1 | 182 passed, 1 skipped | VERIFIED_AT_SNAPSHOT | Current-main Python 3.12 CI. |
+| 2 | 94.22% statement coverage | VERIFIED_AT_SNAPSHOT | Current-main Python 3.12 CI. |
 | 3 | Random-split F1 1.00 | VERIFIED_AT_SNAPSHOT | Pinned evaluation result; optimistic in-distribution baseline. |
 | 4 | Grouped-template F1 0.9714 | VERIFIED_AT_SNAPSHOT | Pinned grouped evaluation. |
 | 5 | Novel-phrasing OOD F1 0.7188, P 0.5897, R 0.92 | VERIFIED_AT_SNAPSHOT | Pinned OOD benchmark. |

@@ -145,3 +145,46 @@ class TestInputLengthValidation:
             headers={"X-API-Key": ("test-api-key-" + ("x" * 32))},
         )
         assert resp.status_code == 413
+
+
+class TestAgentToolBoundary:
+    def test_scan_flags_tool_outside_declared_boundary(self, client_with_auth):
+        headers = {"X-API-Key": ("test-api-key-" + ("x" * 32))}
+        resp = client_with_auth.post(
+            "/scan",
+            json={
+                "prompt": "Summarize the incident report.",
+                "tool_calls": [
+                    {
+                        "name": "send_email",
+                        "arguments": {
+                            "to": "external@example.invalid",
+                            "body": "incident data",
+                        },
+                    }
+                ],
+                "allowed_tools": ["search_docs"],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["would_block"] is True
+        assert any(
+            item["rule_id"] == "LLM06-TOOL-OUTSIDE-BOUNDARY" and item["owasp_llm_id"] == "LLM06"
+            for item in body["findings"]
+        )
+
+    def test_scan_allows_declared_read_only_tool(self, client_with_auth):
+        headers = {"X-API-Key": ("test-api-key-" + ("x" * 32))}
+        resp = client_with_auth.post(
+            "/scan",
+            json={
+                "prompt": "Find the incident runbook.",
+                "tool_calls": [{"name": "search_docs", "arguments": {"query": "incident runbook"}}],
+                "allowed_tools": ["search_docs"],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert not any(item["owasp_llm_id"] == "LLM06" for item in resp.json()["findings"])

@@ -15,8 +15,8 @@
 > Reproducible, offline adversarial testing for prompt-injection detectors — with honest in-distribution vs. out-of-distribution evaluation.
 
 [![CI](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-175%20passing-brightgreen)](#testing)
-[![Coverage](https://img.shields.io/badge/coverage-94.30%25-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-182%20passing-brightgreen)](#testing)
+[![Coverage](https://img.shields.io/badge/coverage-94.22%25-brightgreen)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Owner & maintainer:** Pooja Kiran ([@poojakira](https://github.com/poojakira)).
@@ -31,8 +31,8 @@ Reproduced on current `main` (Python 3.12). Grouped/OOD figures are pinned in te
 
 | Metric | Current verified result |
 |---|---:|
-| Tests | 176 collected — 175 passed, 1 skipped |
-| Statement coverage | 94.30% |
+| Tests | 183 collected — 182 passed, 1 skipped |
+| Statement coverage | 94.22% |
 | Attack categories | 6 (+ benign control) |
 | Grouped-split F1 (in-distribution) | 0.9714 |
 | Novel-phrasing OOD F1 | 0.7188 (precision 0.5897, recall 0.92) |
@@ -65,7 +65,7 @@ OWASP LLM + MITRE ATT&CK v19 mapping  -->  SARIF + JSON metrics + CI exit code
 ## Core Capabilities
 
 - Adversarial corpus generation across 6 attack categories (direct override, role switch, context escape, indirect/RAG, obfuscation, multi-step) + benign control
-- TF-IDF + Logistic Regression detector; optional embedding-similarity, PII-leakage, RAG-poisoning, canary detectors
+- TF-IDF + Logistic Regression detector; optional embedding-similarity, PII-leakage, RAG-poisoning, canary detectors, plus a deterministic OWASP 2025 LLM06 agent tool-permission boundary
 - Grouped-template splitting to prevent leakage; novel-phrasing OOD benchmark as the honest generalization figure
 - SARIF output for GitHub Code Scanning; shadow-by-default `/scan` FastAPI service with API-key auth and rate limiting
 - OWASP LLM Top 10 + MITRE ATT&CK v19 mapping
@@ -170,7 +170,7 @@ Here is how data moves through the system from start to finish:
 2. **Vectorize**: Character n-gram TF-IDF transforms text into a feature matrix
 3. **Train**: Logistic Regression fits a binary classifier (malicious vs. benign)
 4. **Split & Evaluate**: Grouped splitting prevents template leakage; metrics computed on held-out set
-5. **Map**: Each detection is annotated with OWASP LLM ID (LLM01/06/07) and ATT&CK technique ID
+5. **Map**: Each detection is annotated with OWASP 2025 LLM ID (implemented partial coverage: LLM01/02/04/06) and ATT&CK technique ID
 6. **Report**: SARIF output integrates with GitHub Code Scanning; exit code 1 on HIGH/CRITICAL blocks CI
 
 ---
@@ -294,6 +294,21 @@ curl -X POST http://localhost:8000/scan \
 Only after representative calibration and explicit acceptance of false-positive
 cost should an operator set `REDTEAM_ENFORCEMENT_MODE=block`.
 
+
+### Agent tool-call boundary (OWASP 2025 LLM06)
+
+The `/scan` request can include proposed `tool_calls`, an explicit `allowed_tools` list, and per-tool `denied_argument_keys`. The service deterministically flags calls outside that least-privilege boundary. This is designed for the execution boundary used by agent systems and does not claim to judge whether an otherwise allowed action is contextually correct.
+
+```json
+{
+  "prompt": "Summarize the incident report",
+  "tool_calls": [{"name": "send_email", "arguments": {"to": "external@example.invalid"}}],
+  "allowed_tools": ["search_docs"]
+}
+```
+
+The example produces an `LLM06-TOOL-OUTSIDE-BOUNDARY` HIGH finding and contributes to `would_block=true`. In `block` mode the response reports `blocked=true`; integration at the actual tool execution boundary remains the operator's responsibility.
+
 ### Run tests
 
 ```bash
@@ -352,7 +367,7 @@ This section covers threats to the framework itself (not the attacks it generate
 
 The gap between random-split F1 (1.0) and external-benchmark F1 (≥ 0.85 target) demonstrates why no single detection layer is sufficient. Production systems should combine:
 - Input classification (this tool)
-- Output filtering (LLM02 coverage)
+- Downstream output validation (OWASP 2025 LLM05; not implemented by this scanner)
 - Privilege separation (least-privilege tool access)
 - Context isolation (separate system prompts from user data)
 - Canary token tracking (detect data exfiltration)
@@ -418,8 +433,8 @@ curl -X POST http://localhost:8000/scan \
 | Additional | Value |
 |------------|-------|
 | Attack Categories | 6 |
-| OWASP Coverage | LLM01, LLM06, LLM07 |
-| Test Coverage | 94.30% (176 collected: 175 passed, 1 skipped) |
+| OWASP 2025 Coverage | Partial LLM01, LLM02, LLM04, LLM06 |
+| Test Coverage | 94.22% (183 collected: 182 passed, 1 skipped) |
 
 ### Limitations
 
@@ -430,7 +445,7 @@ These are fundamental constraints, not bugs:
 3. **No live LLM execution.** The framework evaluates the detector offline. It does not test whether an actual LLM would comply with the injected instruction.
 4. **Cannot detect truly novel attacks.** If an attack strategy is absent from the training templates, the detector has no signal to work with.
 5. **Character n-grams are brittle against semantic attacks.** Paraphrasing defeats them. This is by design: the framework demonstrates the limitations of pattern-matching.
-6. **OWASP coverage is partial.** LLM02 (output handling), LLM08 (excessive agency), LLM09 (overreliance), and LLM10 (model theft) are not yet implemented.
+6. **OWASP 2025 coverage is partial.** LLM06 has deterministic declared tool-boundary checks, but semantic action correctness is out of scope. LLM03, LLM05, LLM07, LLM08, and LLM09 have no dedicated detector here; LLM10 is mitigated only at this scanner service boundary through request/concurrency/time limits, not evaluated for arbitrary downstream applications.
 
 ---
 
@@ -438,7 +453,7 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 94.30% (176 collected: 175 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
+| Test coverage | 94.22% (183 collected: 182 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Enforcement | Shadow by default | `would_block` reports the recommendation; hard blocking requires explicit `REDTEAM_ENFORCEMENT_MODE=block` |
@@ -462,15 +477,15 @@ These are fundamental constraints, not bugs:
 
 Based on repository structure and OWASP mapping gaps:
 
-1. **LLM08 Excessive Agency detector** - Validate whether tool calls stay within declared permission boundaries
+1. **LLM06 semantic action validation** - Extend the implemented deterministic tool boundary with workflow-specific intent and approval checks without relying on a second LLM for the enforcement decision
 2. **Semantic similarity detector** - Move beyond TF-IDF to sentence-transformer embeddings for intent-level detection (infrastructure exists in `[embeddings]` optional dependency)
 3. **Adversarial training loop** - Use false negatives to augment the training corpus iteratively
 4. **Multi-language prompt support** - Current templates are English-only; injection attacks happen in all languages
 5. **Live model evaluation mode** - Optional integration with LLM APIs to test end-to-end injection success rate (infrastructure exists in `src/redteam/live/`)
-6. **Output handler detector (LLM02)** - Scan LLM outputs for XSS, SSRF, code injection patterns before downstream consumption
+6. **Improper output handling detector (LLM05)** - Scan LLM outputs for XSS, SSRF, code injection patterns before downstream consumption
 7. **Benchmark against public datasets** - HuggingFace `datasets` dependency is ready; compare against published injection benchmarks
 8. **Streaming scan support** - Handle token-by-token analysis for streaming LLM responses
-9. **OWASP LLM10 coverage** - Model extraction detection via query frequency and output diversity monitoring
+9. **OWASP 2025 LLM10 application testing** - Evaluate unbounded-consumption controls such as request budgets, timeouts, fan-out limits, and expensive tool/LLM loops in the target application
 
 ---
 
@@ -478,7 +493,7 @@ Based on repository structure and OWASP mapping gaps:
 
 ### Standards and Frameworks
 
-- [OWASP Top 10 for Large Language Model Applications (2025)](https://owasp.org/www-project-top-10-for-large-language-model-applications/) - Primary threat taxonomy
+- [OWASP Top 10 for Large Language Model Applications (2025)](https://genai.owasp.org/llm-top-10/) - Primary threat taxonomy
 - [MITRE ATT&CK v19](https://attack.mitre.org/) - Technique IDs for adversarial ML (T1682-T1689)
 - [MITRE ATLAS (Adversarial Threat Landscape for AI Systems)](https://atlas.mitre.org/) - ML-specific threat framework
 - [SARIF Specification (OASIS)](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) - Static Analysis Results Interchange Format
@@ -494,9 +509,10 @@ Based on repository structure and OWASP mapping gaps:
 
 | OWASP ID | Title | Coverage |
 |----------|-------|----------|
-| LLM01 | Prompt Injection | Direct override, role switch, context escape, obfuscation |
-| LLM06 | Sensitive Information Disclosure | PII/secret detection in outputs |
-| LLM07 | Insecure Plugin Design / RAG Poisoning | Indirect injection via documents, canary tracking |
+| LLM01 | Prompt Injection | Prompt/indirect-injection detector signals; OOD limitations remain explicit |
+| LLM02 | Sensitive Information Disclosure | PII/secret patterns and canary leakage |
+| LLM04 | Data and Model Poisoning | Injection-shaped poisoned retrieval-context signals |
+| LLM06 | Excessive Agency | Deterministic declared tool/argument permission boundary |
 
 ---
 

@@ -30,8 +30,8 @@ A reproducible offline prompt-attack evaluation framework that reports both the 
 
 Current-main Python 3.12 CI reports:
 
-- **175 passed, 1 skipped**.
-- **94.30% statement coverage**; CI gate is 90%.
+- **182 passed, 1 skipped**.
+- **94.22% statement coverage**; CI gate is 90%.
 - Current benchmark values remain pinned:
   - random split F1 **1.00**
   - grouped-template F1 **0.9714**
@@ -63,4 +63,4 @@ pytest tests/ -q --cov=redteam --cov-report=term
 python benchmarks/ood_novel_phrasings.py
 ```
 
-Expected CI evidence: **175 passed, 1 skipped**, **94.30% coverage**.
+Expected CI evidence: **182 passed, 1 skipped**, **94.22% coverage**.
