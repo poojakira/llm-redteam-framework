@@ -1,4 +1,4 @@
-"""Deterministic OWASP LLM08 excessive-agency checks for agent tool calls.
+"""Deterministic OWASP 2025 LLM06 excessive-agency checks for agent tool calls.
 
 This module does not judge whether a tool action is semantically correct. It
 enforces the permission boundary supplied by the caller: only declared tools
@@ -30,7 +30,7 @@ class ToolPermissionBoundaryDetector:
         if tool_calls and not allowed:
             findings.append(
                 {
-                    "rule_id": "LLM08-UNDECLARED-TOOLS",
+                    "rule_id": "LLM06-UNDECLARED-TOOLS",
                     "severity": "HIGH",
                     "message": (
                         "Tool calls were supplied without an explicit allowed_tools boundary. "
@@ -45,7 +45,7 @@ class ToolPermissionBoundaryDetector:
             if not name:
                 findings.append(
                     {
-                        "rule_id": "LLM08-MALFORMED-TOOL-CALL",
+                        "rule_id": "LLM06-MALFORMED-TOOL-CALL",
                         "severity": "HIGH",
                         "message": f"Tool call {index} has no valid tool name.",
                     }
@@ -55,7 +55,7 @@ class ToolPermissionBoundaryDetector:
             if name not in allowed:
                 findings.append(
                     {
-                        "rule_id": "LLM08-TOOL-OUTSIDE-BOUNDARY",
+                        "rule_id": "LLM06-TOOL-OUTSIDE-BOUNDARY",
                         "severity": "HIGH",
                         "message": (
                             f"Tool call {index} requests {name!r}, which is outside "
@@ -68,7 +68,7 @@ class ToolPermissionBoundaryDetector:
             if not isinstance(arguments, Mapping):
                 findings.append(
                     {
-                        "rule_id": "LLM08-MALFORMED-TOOL-ARGUMENTS",
+                        "rule_id": "LLM06-MALFORMED-TOOL-ARGUMENTS",
                         "severity": "HIGH",
                         "message": f"Tool call {index} arguments must be an object.",
                     }
@@ -80,7 +80,7 @@ class ToolPermissionBoundaryDetector:
             if present:
                 findings.append(
                     {
-                        "rule_id": "LLM08-DENIED-TOOL-ARGUMENT",
+                        "rule_id": "LLM06-DENIED-TOOL-ARGUMENT",
                         "severity": "HIGH",
                         "message": (
                             f"Tool call {index} to {name!r} supplies explicitly denied "
