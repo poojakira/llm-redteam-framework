@@ -23,25 +23,25 @@ def _findings_all_types():
             "owasp_llm_id": "LLM01",
         },
         {
-            "rule_id": "LLM06-PIILeakage",
+            "rule_id": "LLM02-PIILeakage",
             "severity": "CRITICAL",
             "message": "pii",
             "detector": "pii_leakage",
-            "owasp_llm_id": "LLM06",
+            "owasp_llm_id": "LLM02",
         },
         {
-            "rule_id": "LLM07-RAGPoisoning",
+            "rule_id": "LLM04-RAGPoisoning",
             "severity": "MEDIUM",
             "message": "rag",
             "detector": "rag_poisoning",
-            "owasp_llm_id": "LLM07",
+            "owasp_llm_id": "LLM04",
         },
         {
-            "rule_id": "LLM02-InsecureOutput",
+            "rule_id": "LLM06-TOOL-OUTSIDE-BOUNDARY",
             "severity": "LOW",
-            "message": "out",
-            "detector": "output",
-            "owasp_llm_id": "LLM02",
+            "message": "tool",
+            "detector": "tool_permission_boundary",
+            "owasp_llm_id": "LLM06",
         },
         {
             "rule_id": "UNKNOWN-RULE",
@@ -71,9 +71,9 @@ def test_severity_to_level_mapping():
     results = doc["runs"][0]["results"]
     levels = {r["ruleId"]: r["level"] for r in results}
     assert levels["LLM01-PromptInjection"] == "error"  # HIGH
-    assert levels["LLM06-PIILeakage"] == "error"  # CRITICAL
-    assert levels["LLM07-RAGPoisoning"] == "warning"  # MEDIUM
-    assert levels["LLM02-InsecureOutput"] == "note"  # LOW
+    assert levels["LLM02-PIILeakage"] == "error"  # CRITICAL
+    assert levels["LLM04-RAGPoisoning"] == "warning"  # MEDIUM
+    assert levels["LLM06-TOOL-OUTSIDE-BOUNDARY"] == "note"  # LOW
     assert levels["UNKNOWN-RULE"] == "none"  # NOTE
 
 
@@ -88,9 +88,9 @@ def test_findings_defaults_when_keys_missing():
 def test_all_rules_always_emitted():
     doc = findings_to_sarif("s", [])
     rules = doc["runs"][0]["tool"]["driver"]["rules"]
-    assert len(rules) == 4
+    assert len(rules) == 5
     ids = {r["id"] for r in rules}
-    assert "LLM01-PromptInjection" in ids and "LLM06-PIILeakage" in ids
+    assert ids == {f["rule_id"] for f in _findings_all_types()}
 
 
 def test_has_high_or_critical_true():
