@@ -221,19 +221,23 @@ def _run_detectors(req: ScanRequest) -> list[Finding]:
                 severity=r["severity"],
                 message=r["message"],
                 detector="pii_leakage",
-                owasp_llm_id="LLM06",
+                owasp_llm_id="LLM02",
             )
         )
 
     if req.context_docs:
-        for r in _rag_detector.scan(req.prompt, req.context_docs):
+        for r in _rag_detector.scan(req.prompt, req.context_docs, req.response):
             findings.append(
                 Finding(
                     rule_id=r["rule_id"],
                     severity=r["severity"],
                     message=r["message"],
                     detector="rag_poisoning",
-                    owasp_llm_id="LLM07",
+                    owasp_llm_id=(
+                        "LLM02"
+                        if r["rule_id"] == "LLM02-CanaryLeakage"
+                        else "LLM04"
+                    ),
                 )
             )
 
@@ -260,7 +264,7 @@ def _run_detectors(req: ScanRequest) -> list[Finding]:
                     severity=r["severity"],
                     message=r["message"],
                     detector="tool_permission_boundary",
-                    owasp_llm_id="LLM08",
+                    owasp_llm_id="LLM06",
                 )
             )
 
