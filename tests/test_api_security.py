@@ -171,8 +171,8 @@ class TestAgentToolBoundary:
         body = resp.json()
         assert body["would_block"] is True
         assert any(
-            item["rule_id"] == "LLM08-TOOL-OUTSIDE-BOUNDARY"
-            and item["owasp_llm_id"] == "LLM08"
+            item["rule_id"] == "LLM06-TOOL-OUTSIDE-BOUNDARY"
+            and item["owasp_llm_id"] == "LLM06"
             for item in body["findings"]
         )
 
@@ -191,5 +191,5 @@ class TestAgentToolBoundary:
         )
         assert resp.status_code == 200
         assert not any(
-            item["owasp_llm_id"] == "LLM08" for item in resp.json()["findings"]
+            item["owasp_llm_id"] == "LLM06" for item in resp.json()["findings"]
         )
