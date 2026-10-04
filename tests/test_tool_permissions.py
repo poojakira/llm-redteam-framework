@@ -21,7 +21,7 @@ def test_blocks_tool_outside_declared_boundary():
         ],
         allowed_tools=["search_docs"],
     )
-    assert {item["rule_id"] for item in findings} == {"LLM08-TOOL-OUTSIDE-BOUNDARY"}
+    assert {item["rule_id"] for item in findings} == {"LLM06-TOOL-OUTSIDE-BOUNDARY"}
 
 
 def test_fails_closed_when_tool_calls_have_no_policy():
@@ -31,8 +31,8 @@ def test_fails_closed_when_tool_calls_have_no_policy():
         allowed_tools=[],
     )
     rule_ids = {item["rule_id"] for item in findings}
-    assert "LLM08-UNDECLARED-TOOLS" in rule_ids
-    assert "LLM08-TOOL-OUTSIDE-BOUNDARY" in rule_ids
+    assert "LLM06-UNDECLARED-TOOLS" in rule_ids
+    assert "LLM06-TOOL-OUTSIDE-BOUNDARY" in rule_ids
 
 
 def test_blocks_explicitly_denied_high_impact_argument():
@@ -51,4 +51,4 @@ def test_blocks_explicitly_denied_high_impact_argument():
         allowed_tools=["send_email"],
         denied_argument_keys={"send_email": ["bcc"]},
     )
-    assert [item["rule_id"] for item in findings] == ["LLM08-DENIED-TOOL-ARGUMENT"]
+    assert [item["rule_id"] for item in findings] == ["LLM06-DENIED-TOOL-ARGUMENT"]
