@@ -65,7 +65,7 @@ OWASP LLM + MITRE ATT&CK v19 mapping  -->  SARIF + JSON metrics + CI exit code
 ## Core Capabilities
 
 - Adversarial corpus generation across 6 attack categories (direct override, role switch, context escape, indirect/RAG, obfuscation, multi-step) + benign control
-- TF-IDF + Logistic Regression detector; optional embedding-similarity, PII-leakage, RAG-poisoning, canary detectors
+- TF-IDF + Logistic Regression detector; optional embedding-similarity, PII-leakage, RAG-poisoning, canary detectors, plus a deterministic LLM08 agent tool-permission boundary
 - Grouped-template splitting to prevent leakage; novel-phrasing OOD benchmark as the honest generalization figure
 - SARIF output for GitHub Code Scanning; shadow-by-default `/scan` FastAPI service with API-key auth and rate limiting
 - OWASP LLM Top 10 + MITRE ATT&CK v19 mapping
@@ -294,6 +294,21 @@ curl -X POST http://localhost:8000/scan \
 Only after representative calibration and explicit acceptance of false-positive
 cost should an operator set `REDTEAM_ENFORCEMENT_MODE=block`.
 
+
+### Agent tool-call boundary (OWASP LLM08)
+
+The `/scan` request can include proposed `tool_calls`, an explicit `allowed_tools` list, and per-tool `denied_argument_keys`. The service deterministically flags calls outside that least-privilege boundary. This is designed for the execution boundary used by agent systems and does not claim to judge whether an otherwise allowed action is contextually correct.
+
+```json
+{
+  "prompt": "Summarize the incident report",
+  "tool_calls": [{"name": "send_email", "arguments": {"to": "external@example.invalid"}}],
+  "allowed_tools": ["search_docs"]
+}
+```
+
+The example produces an `LLM08-TOOL-OUTSIDE-BOUNDARY` HIGH finding and contributes to `would_block=true`. In `block` mode the response reports `blocked=true`; integration at the actual tool execution boundary remains the operator's responsibility.
+
 ### Run tests
 
 ```bash
@@ -418,7 +433,7 @@ curl -X POST http://localhost:8000/scan \
 | Additional | Value |
 |------------|-------|
 | Attack Categories | 6 |
-| OWASP Coverage | LLM01, LLM06, LLM07 |
+| OWASP Coverage | LLM01, LLM06, LLM07, LLM08 tool-boundary checks |
 | Test Coverage | 94.30% (176 collected: 175 passed, 1 skipped) |
 
 ### Limitations
@@ -430,7 +445,7 @@ These are fundamental constraints, not bugs:
 3. **No live LLM execution.** The framework evaluates the detector offline. It does not test whether an actual LLM would comply with the injected instruction.
 4. **Cannot detect truly novel attacks.** If an attack strategy is absent from the training templates, the detector has no signal to work with.
 5. **Character n-grams are brittle against semantic attacks.** Paraphrasing defeats them. This is by design: the framework demonstrates the limitations of pattern-matching.
-6. **OWASP coverage is partial.** LLM02 (output handling), LLM08 (excessive agency), LLM09 (overreliance), and LLM10 (model theft) are not yet implemented.
+6. **OWASP coverage is partial.** LLM08 now has deterministic declared tool-boundary checks, but semantic action correctness is still out of scope. LLM09 (overreliance) and LLM10 (model theft) remain unimplemented as runtime concerns.
 
 ---
 
@@ -462,7 +477,7 @@ These are fundamental constraints, not bugs:
 
 Based on repository structure and OWASP mapping gaps:
 
-1. **LLM08 Excessive Agency detector** - Validate whether tool calls stay within declared permission boundaries
+1. **LLM08 semantic action validation** - Extend the implemented deterministic tool boundary with workflow-specific intent and approval checks without relying on a second LLM for the enforcement decision
 2. **Semantic similarity detector** - Move beyond TF-IDF to sentence-transformer embeddings for intent-level detection (infrastructure exists in `[embeddings]` optional dependency)
 3. **Adversarial training loop** - Use false negatives to augment the training corpus iteratively
 4. **Multi-language prompt support** - Current templates are English-only; injection attacks happen in all languages
