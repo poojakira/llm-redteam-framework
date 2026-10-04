@@ -28,7 +28,7 @@ B. Injection pattern scanning
    regex and a small keyword list. Any document containing an injection
    instruction raises a HIGH finding.
 
-OWASP LLM Top 10: LLM07  --  Insecure Plugin Design / RAG Poisoning
+OWASP Top 10 for LLM Applications 2025: LLM04 -- Data and Model Poisoning
 """
 
 from __future__ import annotations
@@ -155,7 +155,7 @@ class RAGPoisoningDetector:
             if injection_matches:
                 findings.append(
                     {
-                        "rule_id": "LLM07-RAGPoisoning",
+                        "rule_id": "LLM04-RAGPoisoning",
                         "severity": "HIGH",
                         "message": (
                             f"Context document {idx} contains prompt injection pattern. "
@@ -171,7 +171,7 @@ class RAGPoisoningDetector:
                 doc_fp = self._canary_registry.get(canary, "unknown")
                 findings.append(
                     {
-                        "rule_id": "LLM07-CanaryLeakage",
+                        "rule_id": "LLM02-CanaryLeakage",
                         "severity": "MEDIUM",
                         "message": (
                             f"Canary token {canary!r} from document {doc_fp} "
