@@ -112,10 +112,21 @@ mappings:
     description: >
       LLMs granted excessive permissions perform unintended actions when
       manipulated via prompt injection or ambiguous instructions.
-    detectors: []
+    detectors:
+      - module: redteam.detectors.tool_permissions
+        class: ToolPermissionBoundaryDetector
+        rule_ids:
+          - LLM08-UNDECLARED-TOOLS
+          - LLM08-TOOL-OUTSIDE-BOUNDARY
+          - LLM08-DENIED-TOOL-ARGUMENT
+          - LLM08-MALFORMED-TOOL-CALL
+          - LLM08-MALFORMED-TOOL-ARGUMENTS
+        technique: >
+          Deterministic comparison of proposed agent tool calls against an
+          explicit least-privilege allowed-tools boundary and denied argument keys.
     notes: >
-      Not yet implemented. Planned: action scope validator that checks whether
-      a requested tool call is within the declared permission boundary.
+      This validates declared permission boundaries. It does not determine
+      whether an otherwise permitted action is semantically correct.
     attack_techniques:
       - id: T1078
         name: Valid Accounts  --  misuse of legitimate LLM tool-call credentials
