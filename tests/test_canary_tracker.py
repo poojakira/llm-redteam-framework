@@ -58,10 +58,10 @@ def test_findings_from_leaks():
     findings = tracker.findings_from_leaks(fired)
     assert len(findings) == 1
     f = findings[0]
-    assert f["rule_id"] == "LLM07-CanaryFired"
+    assert f["rule_id"] == "LLM02-CanaryFired"
     assert f["severity"] == "HIGH"
     assert f["detector"] == "canary_tracker"
-    assert f["owasp_llm_id"] == "LLM07"
+    assert f["owasp_llm_id"] == "LLM02"
     assert "doc-42" in f["message"]
 
 
