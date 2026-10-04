@@ -171,8 +171,7 @@ class TestAgentToolBoundary:
         body = resp.json()
         assert body["would_block"] is True
         assert any(
-            item["rule_id"] == "LLM06-TOOL-OUTSIDE-BOUNDARY"
-            and item["owasp_llm_id"] == "LLM06"
+            item["rule_id"] == "LLM06-TOOL-OUTSIDE-BOUNDARY" and item["owasp_llm_id"] == "LLM06"
             for item in body["findings"]
         )
 
@@ -182,14 +181,10 @@ class TestAgentToolBoundary:
             "/scan",
             json={
                 "prompt": "Find the incident runbook.",
-                "tool_calls": [
-                    {"name": "search_docs", "arguments": {"query": "incident runbook"}}
-                ],
+                "tool_calls": [{"name": "search_docs", "arguments": {"query": "incident runbook"}}],
                 "allowed_tools": ["search_docs"],
             },
             headers=headers,
         )
         assert resp.status_code == 200
-        assert not any(
-            item["owasp_llm_id"] == "LLM06" for item in resp.json()["findings"]
-        )
+        assert not any(item["owasp_llm_id"] == "LLM06" for item in resp.json()["findings"])

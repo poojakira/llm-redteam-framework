@@ -233,11 +233,7 @@ def _run_detectors(req: ScanRequest) -> list[Finding]:
                     severity=r["severity"],
                     message=r["message"],
                     detector="rag_poisoning",
-                    owasp_llm_id=(
-                        "LLM02"
-                        if r["rule_id"] == "LLM02-CanaryLeakage"
-                        else "LLM04"
-                    ),
+                    owasp_llm_id=("LLM02" if r["rule_id"] == "LLM02-CanaryLeakage" else "LLM04"),
                 )
             )
 

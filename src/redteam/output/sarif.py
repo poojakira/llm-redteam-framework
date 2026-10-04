@@ -73,6 +73,7 @@ def _rule_descriptor(finding: dict[str, Any]) -> dict[str, Any]:
         "properties": {"tags": tags},
     }
 
+
 def findings_to_sarif(
     scan_id: str,
     findings: list[dict[str, Any]],
