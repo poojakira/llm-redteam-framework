@@ -14,7 +14,7 @@ This tracker assigns a UUID-based canary to every document at index time.
 When an LLM response is checked, any canary that appears has leaked  --
 confirming both retrieval and verbatim reproduction.
 
-OWASP LLM Top 10: LLM07 (RAG Poisoning), LLM06 (Sensitive Information Disclosure)
+OWASP Top 10 for LLM Applications 2025: LLM02 (Sensitive Information Disclosure)
 """
 
 from __future__ import annotations
@@ -159,7 +159,7 @@ class CanaryTokenTracker:
         for canary_id, record in fired.items():
             findings.append(
                 {
-                    "rule_id": "LLM07-CanaryFired",
+                    "rule_id": "LLM02-CanaryFired",
                     "severity": "HIGH",
                     "message": (
                         f"Canary token {canary_id!r} embedded in document {record.doc_id!r} "
@@ -167,7 +167,7 @@ class CanaryTokenTracker:
                         f"Session: {record.fired_in_session or 'unknown'}."
                     ),
                     "detector": "canary_tracker",
-                    "owasp_llm_id": "LLM07",
+                    "owasp_llm_id": "LLM02",
                 }
             )
         return findings
