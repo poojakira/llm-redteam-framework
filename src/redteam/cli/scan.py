@@ -82,7 +82,7 @@ def _scan_records(
         pii_findings = pii_detector.scan(combined_text)
         for f in pii_findings:
             f.setdefault("detector", "pii_leakage")
-            f.setdefault("owasp_llm_id", "LLM06")
+            f.setdefault("owasp_llm_id", "LLM02")
             f.setdefault("record_index", idx)
         all_findings.extend(pii_findings)
 
