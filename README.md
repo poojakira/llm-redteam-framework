@@ -15,8 +15,8 @@
 > Reproducible, offline adversarial testing for prompt-injection detectors — with honest in-distribution vs. out-of-distribution evaluation.
 
 [![CI](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-175%20passing-brightgreen)](#testing)
-[![Coverage](https://img.shields.io/badge/coverage-94.30%25-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-182%20passing-brightgreen)](#testing)
+[![Coverage](https://img.shields.io/badge/coverage-94.22%25-brightgreen)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Owner & maintainer:** Pooja Kiran ([@poojakira](https://github.com/poojakira)).
@@ -31,8 +31,8 @@ Reproduced on current `main` (Python 3.12). Grouped/OOD figures are pinned in te
 
 | Metric | Current verified result |
 |---|---:|
-| Tests | 176 collected — 175 passed, 1 skipped |
-| Statement coverage | 94.30% |
+| Tests | 183 collected — 182 passed, 1 skipped |
+| Statement coverage | 94.22% |
 | Attack categories | 6 (+ benign control) |
 | Grouped-split F1 (in-distribution) | 0.9714 |
 | Novel-phrasing OOD F1 | 0.7188 (precision 0.5897, recall 0.92) |
@@ -434,7 +434,7 @@ curl -X POST http://localhost:8000/scan \
 |------------|-------|
 | Attack Categories | 6 |
 | OWASP 2025 Coverage | Partial LLM01, LLM02, LLM04, LLM06 |
-| Test Coverage | 94.30% (176 collected: 175 passed, 1 skipped) |
+| Test Coverage | 94.22% (183 collected: 182 passed, 1 skipped) |
 
 ### Limitations
 
@@ -453,7 +453,7 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 94.30% (176 collected: 175 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
+| Test coverage | 94.22% (183 collected: 182 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Enforcement | Shadow by default | `would_block` reports the recommendation; hard blocking requires explicit `REDTEAM_ENFORCEMENT_MODE=block` |
