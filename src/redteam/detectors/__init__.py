@@ -5,11 +5,11 @@ Public API for the detectors sub-package.
 
 Exports
 -------
-RAGPoisoningDetector       --  LLM07  canary injection + injection pattern scan
-PIILeakageDetector         --  LLM06  regex + entropy + spaCy NER
-CanaryTokenTracker         --  LLM07  per-document canary embed/fire tracking
+RAGPoisoningDetector       --  LLM04/LLM02 poisoned-context + canary-leak signals
+PIILeakageDetector         --  LLM02  regex + entropy + spaCy NER
+CanaryTokenTracker         --  LLM02  per-document canary embed/fire tracking
 EmbeddingSimilarityDetector  --  LLM01  cosine similarity vs seed attack corpus
-ToolPermissionBoundaryDetector -- LLM08 deterministic least-privilege tool boundary
+ToolPermissionBoundaryDetector -- LLM06 deterministic least-privilege tool boundary
 """
 
 from __future__ import annotations
