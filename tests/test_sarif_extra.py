@@ -85,12 +85,18 @@ def test_findings_defaults_when_keys_missing():
     assert result["message"]["text"] == "No description provided."
 
 
-def test_all_rules_always_emitted():
-    doc = findings_to_sarif("s", [])
+def test_sarif_rules_match_exact_emitted_findings():
+    findings = _findings_all_types()
+    doc = findings_to_sarif("s", findings)
     rules = doc["runs"][0]["tool"]["driver"]["rules"]
-    assert len(rules) == 5
+    assert len(rules) == len(findings)
     ids = {r["id"] for r in rules}
-    assert ids == {f["rule_id"] for f in _findings_all_types()}
+    assert ids == {finding["rule_id"] for finding in findings}
+
+
+def test_empty_scan_emits_no_phantom_rules():
+    doc = findings_to_sarif("s", [])
+    assert doc["runs"][0]["tool"]["driver"]["rules"] == []
 
 
 def test_has_high_or_critical_true():
