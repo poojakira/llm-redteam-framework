@@ -30,63 +30,48 @@ _SEVERITY_TO_LEVEL: dict[str, str] = {
     "NOTE": "none",
 }
 
-# OWASP LLM Top 10 rule definitions  --  one rule per detector category
-_RULES: list[dict[str, Any]] = [
-    {
-        "id": "LLM01-PromptInjection",
-        "name": "PromptInjection",
-        "shortDescription": {"text": "Prompt injection attack pattern detected."},
-        "fullDescription": {
-            "text": (
-                "The prompt contains patterns semantically similar to known prompt injection "
-                "attacks. OWASP LLM Top 10: LLM01."
-            )
-        },
-        "helpUri": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
-        "properties": {"tags": ["security", "LLM01", "OWASP"]},
-    },
-    {
-        "id": "LLM06-PIILeakage",
-        "name": "PIILeakage",
-        "shortDescription": {"text": "PII or secret credential found in prompt/response."},
-        "fullDescription": {
-            "text": (
-                "Personal Identifiable Information (PII) or secret material (API key, token, "
-                "password) detected in the LLM input or output. OWASP LLM Top 10: LLM06."
-            )
-        },
-        "helpUri": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
-        "properties": {"tags": ["security", "LLM06", "PII", "OWASP"]},
-    },
-    {
-        "id": "LLM07-RAGPoisoning",
-        "name": "RAGPoisoning",
-        "shortDescription": {"text": "RAG context document contains canary or injection pattern."},
-        "fullDescription": {
-            "text": (
-                "A retrieval-augmented generation context document triggered a canary token "
-                "match or contains adversarial content designed to manipulate LLM output. "
-                "OWASP LLM Top 10: LLM07."
-            )
-        },
-        "helpUri": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
-        "properties": {"tags": ["security", "LLM07", "RAG", "OWASP"]},
-    },
-    {
-        "id": "LLM02-InsecureOutput",
-        "name": "InsecureOutput",
-        "shortDescription": {"text": "LLM output contains potentially dangerous content."},
-        "fullDescription": {
-            "text": (
-                "The LLM response contains content that could be used maliciously if passed "
-                "to a downstream system without sanitisation. OWASP LLM Top 10: LLM02."
-            )
-        },
-        "helpUri": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
-        "properties": {"tags": ["security", "LLM02", "OWASP"]},
-    },
-]
+# OWASP Top 10 for LLM Applications 2025 category names.
+# SARIF rule descriptors are generated from the exact emitted rule IDs so every
+# result references a descriptor that actually exists in the report.
+_OWASP_2025_TITLES: dict[str, str] = {
+    "LLM01": "Prompt Injection",
+    "LLM02": "Sensitive Information Disclosure",
+    "LLM03": "Supply Chain",
+    "LLM04": "Data and Model Poisoning",
+    "LLM05": "Improper Output Handling",
+    "LLM06": "Excessive Agency",
+    "LLM07": "System Prompt Leakage",
+    "LLM08": "Vector and Embedding Weaknesses",
+    "LLM09": "Misinformation",
+    "LLM10": "Unbounded Consumption",
+}
 
+
+def _rule_descriptor(finding: dict[str, Any]) -> dict[str, Any]:
+    rule_id = str(finding.get("rule_id", "UNKNOWN"))
+    owasp_id = str(finding.get("owasp_llm_id", "")).strip()
+    detector = str(finding.get("detector", "")).strip() or "detector"
+    category = _OWASP_2025_TITLES.get(owasp_id, "Security Finding")
+    tags = ["security", "OWASP"]
+    if owasp_id:
+        tags.append(owasp_id)
+    return {
+        "id": rule_id,
+        "name": rule_id.replace("-", "_"),
+        "shortDescription": {"text": f"{category}: {rule_id}"},
+        "fullDescription": {
+            "text": (
+                f"Finding emitted by {detector}. "
+                + (
+                    f"Mapped to OWASP Top 10 for LLM Applications 2025 {owasp_id}: {category}."
+                    if owasp_id
+                    else "No OWASP category is claimed for this rule."
+                )
+            )
+        },
+        "helpUri": "https://genai.owasp.org/llm-top-10/",
+        "properties": {"tags": tags},
+    }
 
 def findings_to_sarif(
     scan_id: str,
@@ -141,11 +126,11 @@ def findings_to_sarif(
         }
         results.append(result)
 
-    # Collect only the rules that actually appear in this scan's findings
-    referenced_rule_ids = {f.get("rule_id", "") for f in findings}
-    [r for r in _RULES if any(r["id"] in rid or rid in r["id"] for rid in referenced_rule_ids)]
-    # Always include all rules so the SARIF file is self-describing
-    rules_to_emit = _RULES
+    rules_by_id: dict[str, dict[str, Any]] = {}
+    for finding in findings:
+        rule_id = str(finding.get("rule_id", "UNKNOWN"))
+        rules_by_id.setdefault(rule_id, _rule_descriptor(finding))
+    rules_to_emit = list(rules_by_id.values())
 
     sarif_doc: dict[str, Any] = {
         "version": SARIF_VERSION,
