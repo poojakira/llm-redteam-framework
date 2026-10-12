@@ -1,15 +1,3 @@
-<!-- security-systems-poster -->
-## Research Poster
-
-**Security Systems / 05 — Evaluating an Offline Detector Against Adversarial Prompt Attacks**
-
-[![Research poster](poster/poster.png)](poster/poster_36x48.pdf)
-
-> Technical research poster (36 x 48 in). Click the image for the print-resolution **[PDF](poster/poster_36x48.pdf)**.
-> Poster measurements are dated snapshots at their printed commits. Use the repository evidence files for newer results; do not read the poster as a verification of the latest `main`.
-> Every metric on it is evidence-backed; historical/projected numbers are labeled and separated from current results.
-<!-- security-systems-poster -->
-
 # LLM Red Team Framework
 
 > Reproducible, offline adversarial testing for prompt-injection detectors — with honest in-distribution vs. out-of-distribution evaluation.
@@ -69,7 +57,6 @@ OWASP LLM + MITRE ATT&CK v19 mapping  -->  SARIF + JSON metrics + CI exit code
 - Grouped-template splitting to prevent leakage; novel-phrasing OOD benchmark as the honest generalization figure
 - SARIF output for GitHub Code Scanning; shadow-by-default `/scan` FastAPI service with API-key auth and rate limiting
 - OWASP LLM Top 10 + MITRE ATT&CK v19 mapping
-
 
 
 ---
@@ -523,6 +510,18 @@ Based on repository structure and OWASP mapping gaps:
 - [docs/PERFORMANCE_BASELINE.md](docs/PERFORMANCE_BASELINE.md) - detection latency baselines
 - [benchmarks/detection_perf.py](benchmarks/detection_perf.py) - perf gate (hard: p95 < 5 ms; throughput ~1,400/sec measured, reported informationally)
 - [benchmarks/external_validation.py](benchmarks/external_validation.py) - InjectionBench + JailbreakBench validation
+
+<!-- security-systems-poster -->
+## Research Poster
+
+**Security Systems / 05 — Evaluating an Offline Detector Against Adversarial Prompt Attacks**
+
+[![Research poster](poster/poster.png)](poster/poster_36x48.pdf)
+
+> Technical research poster (36 x 48 in). Click the image for the print-resolution **[PDF](poster/poster_36x48.pdf)**.
+> Poster measurements are dated snapshots at their printed commits. Use the repository evidence files for newer results; do not read the poster as a verification of the latest `main`.
+> Every metric on it is evidence-backed; historical/projected numbers are labeled and separated from current results.
+<!-- security-systems-poster -->
 
 ## License and Author
 
