@@ -5,27 +5,17 @@
 > Reproducible, offline adversarial testing for prompt-injection detectors — with honest in-distribution vs. out-of-distribution evaluation.
 
 [![CI](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-182%20passing-brightgreen)](#testing)
-[![Coverage](https://img.shields.io/badge/coverage-94.22%25-brightgreen)](#testing)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 
 **Owner & maintainer:** Pooja Kiran ([@poojakira](https://github.com/poojakira)).
 
+## Current local verification — 2026-10-13
+
+**184 passed, 1 skipped; 94.2636% statement coverage (1216/1290).** Python 3.12.14, local execution against the remediation revision. These results are not security-effectiveness, deployment, or remote-CI evidence. See [commands, scope and limitations](docs/verification-2026-10-13.md) and [historical runs](previos_runs.md). Dated posters and benchmark artifacts have not been rerun or regenerated in this pass.
+
 ## Overview
 
-`llm-redteam-framework` is an offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares grouped-template (in-distribution) evaluation against novel-phrasing out-of-distribution evaluation — deliberately exposing the generalization gap of pattern-matching defenses. It runs entirely offline (no live LLM calls) and emits SARIF for CI integration. It exists to measure detector *methodology* honestly, not to claim a best-in-class detector.
-
-## Verified Snapshot
-
-Reproduced on current `main` (Python 3.12). Grouped/OOD figures are pinned in tests.
-
-| Metric | Current verified result |
-|---|---:|
-| Tests | 183 collected — 182 passed, 1 skipped |
-| Statement coverage | 94.22% |
-| Attack categories | 6 (+ benign control) |
-| Grouped-split F1 (in-distribution) | 0.9714 |
-| Novel-phrasing OOD F1 | 0.7188 (precision 0.5897, recall 0.92) |
+`llm-redteam-framework` is an offline evaluation harness for prompt-injection detectors. It generates adversarial corpora across six attack categories, trains a TF-IDF + Logistic Regression baseline, and compares grouped-template (in-distribution) evaluation against novel-phrasing out-of-distribution evaluation — deliberately exposing the generalization gap of pattern-matching defenses. Its detector evaluation runs offline and emits SARIF for CI integration. A separate optional live endpoint scanner sends requests only when explicitly invoked. It exists to measure detector *methodology* honestly, not to claim a best-in-class detector.
 
 ## Security Problem
 
@@ -35,7 +25,7 @@ Prompt injection is the top risk in the OWASP LLM Top 10. Teams deploying LLM ap
 
 **In scope:** offline classification of adversarial vs. benign *prompt text* across six injection categories; honest measurement of in-distribution, grouped-holdout, structural-fixture, and novel-phrasing OOD performance.
 
-**Out of scope / not claimed:** It does not execute a live LLM or test whether a model actually complies with an injection. It is not comparable to LLM-judge benchmarks like JailbreakBench (which judge model *responses*) — comparing F1 across the two is a category error (see `benchmarks/jailbreakbench_comparison.md`). Character-n-gram TF-IDF captures lexical patterns, not semantic intent; natural-language paraphrases evade it. The `/scan` HTTP service is shadow-only by default; hard blocking requires explicit, calibrated operator opt-in.
+**Out of scope / not claimed:** The offline detector evaluation does not execute a live LLM. The optional live scanner uses response-marker heuristics, with transport/schema errors reported separately; these heuristics are not a calibrated model-compliance judge. It is not comparable to LLM-judge benchmarks like JailbreakBench (which judge model *responses*) — comparing F1 across the two is a category error (see `benchmarks/jailbreakbench_comparison.md`). Character-n-gram TF-IDF captures lexical patterns, not semantic intent; natural-language paraphrases evade it. The `/scan` HTTP service is shadow-only by default; hard blocking requires explicit, calibrated operator opt-in.
 
 ## Architecture
 
@@ -410,20 +400,7 @@ curl -X POST http://localhost:8000/scan \
 
 ### Results
 
-| Metric | Random Split (In-Distribution) | Grouped Split (OOD Templates) | Structural Fixtures | Novel-Phrasing OOD |
-|--------|-------------------------------|-------------------------------|---------------------|--------------------|
-| F1 Score | 1.00 | 0.9714 | 0.98 | **0.7188** |
-| Precision | 1.00 | 0.94 | ~0.98 | 0.5897 |
-| Recall | 1.00 | 1.00 | ~0.98 | 0.92 |
-| False Positive Rate | 0.0% | 7.9% | ~1% | 64% (16/25) |
-
-*Grouped/random measured with seed=42, corpus-seed=20240713, test-size=0.3 (pinned in `tests/test_eval.py`). Structural fixtures from `benchmarks/external_validation.py`. Novel-phrasing OOD from `benchmarks/ood_novel_phrasings.py` (pinned in `tests/test_ood_benchmark.py`). The novel-phrasing column is the honest generalization figure — structural fixtures still contain the markers the model memorised.*
-
-| Additional | Value |
-|------------|-------|
-| Attack Categories | 6 |
-| OWASP 2025 Coverage | Partial LLM01, LLM02, LLM04, LLM06 |
-| Test Coverage | 94.22% (183 collected: 182 passed, 1 skipped) |
+See [current local tests](docs/verification-2026-10-13.md) and [historical detector evaluation snapshots](previos_runs.md). Effectiveness benchmarks were not rerun in this pass.
 
 ### Limitations
 
@@ -442,7 +419,7 @@ These are fundamental constraints, not bugs:
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| Test coverage | 94.22% (183 collected: 182 passed, 1 skipped) | Covers generators, detectors, eval harness, output |
+| Test coverage | See [current local verification](docs/verification-2026-10-13.md). |
 | CI pipeline | GitHub Actions | Lint, test, build, security audit |
 | Dependency management | Dependabot + pip-audit + uv.lock | Automated vulnerability scanning |
 | Enforcement | Shadow by default | `would_block` reports the recommendation; hard blocking requires explicit `REDTEAM_ENFORCEMENT_MODE=block` |
@@ -546,21 +523,6 @@ Building a classifier that scores 1.0 F1 on a random split feels like progress. 
 If you take one thing from this repository: always measure your security tooling against inputs it has never seen. The gap between "works on familiar patterns" and "works on novel attacks" is where real-world breaches happen.
 
 <!-- repo-verification:start -->
-## Verification update — 2026-09-30
-
-- **Scope:** Account-wide `poojakira` repository pass covering source/configuration, CI/release workflows, security-hygiene gates, dependency/SAST controls, and documentation consistency.
-- **Remediation:** Applied safe Ruff fixes/formatting, pinned CI/security/release/container actions to immutable revisions, and reran the security scans.
-- **Verification state:** CI, Production Gate, Security Hygiene, Documentation Integrity, both LLM Security Scan workflows, and Container Release completed successfully after remediation.
-- **Security note:** The malicious prompt corpus is intentionally adversarial test data and was retained; detections in that corpus are expected evaluation behavior.
-- **Evidence boundary:** This update records repository and GitHub Actions evidence observed during the pass. It is not a claim of independent penetration testing, production deployment, or zero residual risk.
-<!-- repo-verification:end -->
-
-## Verification checkpoint — 2026-09-30
-
-- **Status:** VERIFIED GREEN FOR THE LISTED REPOSITORY GATES
-- **Evidence:** CI, Security Hygiene, Documentation Integrity, Production Gate, both LLM Security Scan workflows, and Container Release completed successfully on the last verified main revision.
-- **Boundary:** This is dated repository/Actions evidence, not a claim of zero vulnerabilities, external penetration testing, or universal production readiness.
-
 ## Secret handling
 
 Keep runtime credentials outside Git. If this repository provides an `.env.example` or `.env.sample`, copy it to a local `.env` or `.env.local` and fill in values locally; the real environment file must remain untracked.

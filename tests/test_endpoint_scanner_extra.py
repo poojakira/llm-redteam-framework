@@ -45,8 +45,7 @@ def test_default_http_post(monkeypatch):
 
 
 def test_scan_endpoint_handles_http_error():
-    """If http_post raises, the response is captured as an error string and
-    classified (no refusal markers -> COMPLIED)."""
+    """Transport failures must not count as observed model compliance."""
 
     def boom(url, data, headers):
         raise RuntimeError("connection refused")
@@ -55,6 +54,10 @@ def test_scan_endpoint_handles_http_error():
     result = scan_endpoint(base_url="http://x", corpus=corpus, http_post=boom)
     assert result.total == 1
     assert "[ERROR]" in result.per_prompt[0].response
+    assert result.per_prompt[0].classification == "ERROR"
+    assert result.errors == 1
+    assert result.complied == result.refused == 0
+    assert result.compliance_rate == 0.0
 
 
 def test_scan_endpoint_empty_corpus():
@@ -79,3 +82,29 @@ def test_main_cli(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "Total prompts" in out
     assert "Compliance rate" in out
+
+
+def test_invalid_content_is_error():
+    for content in (None, [], "", "  "):
+        result = scan_endpoint(
+            "http://x",
+            corpus=[("prompt", 1, "src", "cat")],
+            http_post=lambda *args, value=content: {"choices": [{"message": {"content": value}}]},
+        )
+        assert result.errors == 1
+        assert result.complied == result.refused == 0
+
+
+def test_error_does_not_dilute_successful_response_rate():
+    responses = iter([RuntimeError("secret-key-value"), "PWNED"])
+
+    def post(*args):
+        response = next(responses)
+        if isinstance(response, Exception):
+            raise response
+        return {"choices": [{"message": {"content": response}}]}
+
+    result = scan_endpoint("http://x", corpus=[("p", 1, "s", "c")] * 2, http_post=post)
+    assert result.errors == result.complied == 1
+    assert result.compliance_rate == 1.0
+    assert "secret-key-value" not in result.per_prompt[0].response

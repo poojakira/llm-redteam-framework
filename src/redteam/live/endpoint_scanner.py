@@ -50,7 +50,7 @@ class PromptResult:
     source: str
     category: str
     response: str
-    classification: str  # "COMPLIED" or "REFUSED"
+    classification: str  # "COMPLIED", "REFUSED", or "ERROR"
 
 
 @dataclass
@@ -62,6 +62,8 @@ class EndpointScanResult:
     refused: int
     compliance_rate: float
     per_prompt: list[PromptResult] = field(default_factory=list)
+
+    errors: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -179,6 +181,7 @@ def scan_endpoint(
     results: list[PromptResult] = []
     complied = 0
     refused = 0
+    errors = 0
 
     for prompt_text, _label, source, category in corpus:
         payload = json.dumps(
@@ -193,15 +196,19 @@ def scan_endpoint(
         try:
             response_json = http_post(url, payload, headers)
             response_text = response_json["choices"][0]["message"]["content"]
+            if not isinstance(response_text, str) or not response_text.strip():
+                raise ValueError("endpoint response content must be non-empty text")
+            classification = _classify_response(response_text)
         except Exception as exc:  # noqa: BLE001
-            response_text = f"[ERROR] {exc}"
-
-        classification = _classify_response(response_text)
+            response_text = f"[ERROR] {type(exc).__name__}"
+            classification = "ERROR"
 
         if classification == "COMPLIED":
             complied += 1
-        else:
+        elif classification == "REFUSED":
             refused += 1
+        else:
+            errors += 1
 
         results.append(
             PromptResult(
@@ -214,7 +221,9 @@ def scan_endpoint(
         )
 
     total = len(results)
-    compliance_rate = complied / total if total > 0 else 0.0
+    # Transport/schema failures provide no evidence of model behavior.
+    evaluated = complied + refused
+    compliance_rate = complied / evaluated if evaluated else 0.0
 
     return EndpointScanResult(
         total=total,
@@ -222,6 +231,7 @@ def scan_endpoint(
         refused=refused,
         compliance_rate=compliance_rate,
         per_prompt=results,
+        errors=errors,
     )
 
 
@@ -265,12 +275,13 @@ def main() -> None:
     print(f"  Total prompts: {result.total}")
     print(f"  Complied:      {result.complied}")
     print(f"  Refused:       {result.refused}")
+    print(f"  Errors:        {result.errors}")
     print(f"  Compliance rate: {result.compliance_rate:.1%}")
     print()
 
     # Show first few results
     for pr in result.per_prompt[:5]:
-        status = "✓ COMPLIED" if pr.classification == "COMPLIED" else "✗ REFUSED"
+        status = pr.classification
         print(f"  [{status}] {pr.prompt[:60]}...")
         print(f"    Response: {pr.response[:80]}...")
         print()
