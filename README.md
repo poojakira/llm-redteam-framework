@@ -1,3 +1,5 @@
+> **READ THIS LICENSE BEFORE USING THIS REPOSITORY.** Owner-controlled new releases are subject to the [proprietary All Rights Reserved LICENSE](LICENSE): copying, modification, and redistribution require written authorization except where law or GitHub's Terms allow. Previously granted MIT rights remain valid for versions covered by that license; see the [historical license](docs/license-history/LICENSE-BEFORE-2026-10-13.txt). Third-party rights remain unaffected.
+
 # LLM Red Team Framework
 
 > Reproducible, offline adversarial testing for prompt-injection detectors — with honest in-distribution vs. out-of-distribution evaluation.
@@ -5,7 +7,7 @@
 [![CI](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/poojakira/llm-redteam-framework/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-182%20passing-brightgreen)](#testing)
 [![Coverage](https://img.shields.io/badge/coverage-94.22%25-brightgreen)](#testing)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 
 **Owner & maintainer:** Pooja Kiran ([@poojakira](https://github.com/poojakira)).
 
@@ -525,7 +527,7 @@ Based on repository structure and OWASP mapping gaps:
 
 ## License and Author
 
-**License:** MIT
+**License:** Proprietary / All Rights Reserved (previously MIT; historical grants preserved)
 
 **Author:** Pooja Kiran
 
