@@ -1,0 +1,53 @@
+{
+  "repository": "llm-redteam-framework",
+  "title": "Evaluating an Offline Detector Against Adversarial Prompt Attacks",
+  "subtitle": "A Reproducible Framework for Prompt-Attack Generation and Defensive Evaluation",
+  "license": "MIT",
+  "source_commit": "2e2989a915cc013c68c46bb6995831b6344cd2a8",
+  "test_commit": "08b40538c00146981d450cad7af5cedd87b887b6",
+  "ci_run": 36783655822,
+  "ci_date": "2026-09-30",
+  "cards": [
+    {
+      "value": "175",
+      "label": "tests passed in cited CI"
+    },
+    {
+      "value": "94.30%",
+      "label": "statement coverage at cited CI"
+    },
+    {
+      "value": "0.7188",
+      "label": "OOD F1, 50 hand-authored texts"
+    },
+    {
+      "value": "64%",
+      "label": "benign false-positive rate, 16/25"
+    }
+  ],
+  "contribution": "A reproducible offline prompt-attack evaluation framework that reports both the stronger in-distribution result and the weaker novel-phrasing result, making the detector's generalization gap explicit instead of hiding it behind a random split.",
+  "methods": [
+    "Generate adversarial and benign prompt corpora across defined attack categories.",
+    "Train/evaluate the offline TF-IDF + Logistic Regression detector.",
+    "Compare random, grouped-template, structural-fixture, and novel-phrasing OOD evaluations.",
+    "Emit JSON/SARIF evidence for CI.",
+    "Keep live-model behavior claims out of scope unless separately measured."
+  ],
+  "evidence": [
+    "Cited Python 3.12 CI: 175 passed, 1 skipped; 94.30% statement coverage, same test job.",
+    "Performance job 110120166630: OOD precision 0.5897, recall 0.92, F1 0.7188 on 25 adversarial and 25 benign hand-authored regression texts.",
+    "Grouped-template F1 0.9714 is an easier in-distribution reference. A prior random-split F1 of 1.00 is reported in source evidence, not independently confirmed by this audit.",
+    "Offline comparison of the same detector; these figures do not establish live LLM protection or population-level generalization."
+  ],
+  "limitations": [
+    "Offline detector evaluation does not prove whether a live LLM would follow an injected instruction.",
+    "English/template coverage is finite.",
+    "Structural fixtures are not equivalent to true OOD natural-language paraphrases.",
+    "No real-world jailbreak-defense rate is claimed."
+  ],
+  "reproduction": [
+    "git checkout 08b40538c00146981d450cad7af5cedd87b887b6",
+    "Install the documented development dependencies; run python -m pytest tests/ -q. Use the cited job configuration when reproducing coverage.",
+    "Benchmark data, adapters and environment requirements are separate; consult poster/13_reproducibility.md and the claim ledger."
+  ]
+}

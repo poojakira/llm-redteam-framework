@@ -596,3 +596,6 @@ source, tests, scripts, examples, benchmarks, validation helpers, and poster gen
 where present. Ruff's standard exclusions omit version-control metadata, virtual
 environments, and build/cache directories; generated poster HTML/PDF/PNG assets are
 not Python source. Passing these static checks does not establish runtime behavior or product effectiveness.
+
+
+Dated CI pairing verified October 13, 2026 UTC: [run 38298939597](https://github.com/poojakira/llm-redteam-framework/actions/runs/38298939597), Python 3.12 job 114976812985, commit `2e2989a915cc013c68c46bb6995831b6344cd2a8`, initiated October 12 UTC, reports **182 passed, 1 skipped, 94.22% statement coverage**. The historical poster run 36783655822 at `08b40538c00146981d450cad7af5cedd87b887b6` instead reports **175 passed, 1 skipped, 94.30%**; do not merge these snapshots.
