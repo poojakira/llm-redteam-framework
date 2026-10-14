@@ -1,9 +1,9 @@
 # Verified Metrics - Poster 05
 
-**Code snapshot:** `08b40538c00146981d450cad7af5cedd87b887b6`  
-**CI run:** https://github.com/poojakira/llm-redteam-framework/actions/runs/36783655822
+**Code snapshot:** `c11bef1c5978a50b2bbd5365608a310bc57adfc9`  
+**CI run:** https://github.com/poojakira/llm-redteam-framework/actions/runs/38502577016
 
-| Metric | Current value |
+| Metric | Oct 14, 2026 main CI / separately pinned evaluation |
 |---|---:|
 | Tests passed | **182** |
 | Tests skipped | **1** |
