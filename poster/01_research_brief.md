@@ -1,6 +1,6 @@
 # Research Brief - Poster 05
 
-> Evidence status: Refreshed against verified code snapshot `08b40538c00146981d450cad7af5cedd87b887b6` and successful CI run `36783655822` on 2026-09-30.
+> Evidence status: Current main is `b6e46b157a22b63bd1427bd4baaf0d2a38bdd40d` (2026-10-13, docs-only commits since last test run). Tests last validated at code snapshot `e1dc6f2ebc96c0d5b48e9df4e04c023b56c51e0f` via successful CI run `38482327106` on 2026-10-13, which reported 184 passed, 1 skipped, 94.26% coverage.
 
 ## Repository
 
@@ -30,8 +30,8 @@ A reproducible offline prompt-attack evaluation framework that reports both the 
 
 Current-main Python 3.12 CI reports:
 
-- **182 passed, 1 skipped**.
-- **94.22% statement coverage**; CI gate is 90%.
+- **184 passed, 1 skipped**.
+- **94.26% statement coverage**; CI gate is 90%.
 - Current benchmark values remain pinned:
   - random split F1 **1.00**
   - grouped-template F1 **0.9714**
@@ -57,10 +57,10 @@ The novel-phrasing result is the key generalization check: F1 falls from **0.971
 ```bash
 git clone https://github.com/poojakira/llm-redteam-framework.git
 cd llm-redteam-framework
-git checkout 08b40538c00146981d450cad7af5cedd87b887b6
+git checkout e1dc6f2ebc96c0d5b48e9df4e04c023b56c51e0f
 python -m pip install -e ".[dev]"
 pytest tests/ -q --cov=redteam --cov-report=term
 python benchmarks/ood_novel_phrasings.py
 ```
 
-Expected CI evidence: **182 passed, 1 skipped**, **94.22% coverage**.
+Expected CI evidence: **184 passed, 1 skipped**, **94.26% coverage**.
