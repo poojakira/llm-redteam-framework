@@ -24,6 +24,7 @@ from redteam.generators import LABEL_ADVERSARIAL, LABEL_BENIGN, build_corpus
 JBB_REPOSITORY = "https://github.com/JailbreakBench/jailbreakbench"
 JBB_COMMIT = "23dbdf6b19650521604456229bc1d9c4156c85c1"
 JBB_DATASET = "JailbreakBench/JBB-Behaviors"
+JBB_DATASET_REVISION = "886acc352a31533ffbcf4ef22c744658688086fc"
 JBB_DOI = "10.57967/hf/2540"
 
 
@@ -38,8 +39,8 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    harmful = load_dataset(JBB_DATASET, "behaviors", split="harmful")
-    benign = load_dataset(JBB_DATASET, "behaviors", split="benign")
+    harmful = load_dataset(JBB_DATASET, "behaviors", split="harmful", revision=JBB_DATASET_REVISION)
+    benign = load_dataset(JBB_DATASET, "behaviors", split="benign", revision=JBB_DATASET_REVISION)
     texts = list(harmful["Goal"]) + list(benign["Goal"])
     labels = [LABEL_ADVERSARIAL] * len(harmful) + [LABEL_BENIGN] * len(benign)
 
@@ -72,6 +73,7 @@ def main() -> None:
         "environment": {"python": sys.version, "platform": platform.platform()},
         "dataset": {
             "name": JBB_DATASET,
+            "revision": JBB_DATASET_REVISION,
             "repository": JBB_REPOSITORY,
             "repository_commit": JBB_COMMIT,
             "doi": JBB_DOI,
