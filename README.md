@@ -241,6 +241,11 @@ For benchmark datasets:
 pip install -e ".[benchmark]"
 ```
 
+The optional official JBB behavior-screening script pins both dataset splits to
+an immutable Hugging Face revision and records that revision in new reports.
+See [benchmark download provenance](benchmarks/DOWNLOAD_PROVENANCE.md). This
+does not rerun or validate any previously committed benchmark result.
+
 ---
 
 ## Quick Start
@@ -592,7 +597,7 @@ This repository separates **implementation evidence**, **public/external interop
 
 ### Maintained Python quality checks
 
-Use Ruff 0.16.8 to match the repository's CI tool version. Run `ruff check .`
+Use Ruff 0.17.1 to match the repository's development dependency. Run `ruff check .`
 and `ruff format --check .` from the repository root. These checks include maintained
 source, tests, scripts, examples, benchmarks, validation helpers, and poster generators
 where present. Ruff's standard exclusions omit version-control metadata, virtual
